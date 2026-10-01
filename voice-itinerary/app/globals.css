@@ -1,68 +1,228 @@
 @import "tailwindcss";
 
-/* Tineri brand tokens. Aligned with Open Destinations / Tineri product sheet. */
-@theme {
-  --color-navy-900: #0e3f5c;
-  --color-navy-700: #14536f;
-  --color-navy-500: #2c7193;
-  --color-navy-100: #e6eff4;
-  --color-orange-500: #f08a2c;
-  --color-orange-400: #f5a256;
-  --color-orange-300: #f8b97a;
-  --color-cream-50: #fbf7ee;
-  --color-cream-100: #f4ecdc;
-  --color-cream-200: #ead9b8;
-  --color-ink-900: #0b1a23;
-  --color-ink-600: #3a4a55;
-  --color-ink-400: #6e7e89;
-  --color-success: #2c8e6b;
-  --color-danger: #c04b3a;
+/* ══════════════════════════════════════════════════════════════════
+   Marhaba — Dubai AI Concierge · by Zapcom
+   ──────────────────────────────────────────────────────────────────
+   BRAND TOKENS. Every brand colour lives here so a Zapcom brand-pack
+   swap is one edit. Components never hard-code these hex values; they
+   read the semantic tokens further down, which derive from these.
+   ══════════════════════════════════════════════════════════════════ */
+:root {
+  /* Zapcom (vendor) */
+  --brand-zapcom: #13233a; /* wordmark colour on light surfaces */
+  --brand-zapcom-on-dark: #f3ebdd; /* wordmark colour on dark surfaces */
 
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system,
-    "Segoe UI", Roboto, sans-serif;
-  --font-script: var(--font-caveat), "Brush Script MT", cursive;
-
-  --radius-card: 18px;
-  --radius-pill: 999px;
-
-  --shadow-soft: 0 1px 2px rgba(14, 63, 92, 0.04),
-    0 12px 32px -12px rgba(14, 63, 92, 0.18);
-  --shadow-orb: 0 8px 28px -6px rgba(240, 138, 44, 0.45),
-    0 30px 80px -30px rgba(14, 63, 92, 0.45);
+  /* Product palette — "sunlit Dubai" */
+  --brand-primary: #13233a; /* deep night navy */
+  --brand-accent: #c49a4a; /* soft gold / brass */
+  --brand-accent-strong: #a87b2e; /* brass, for text-on-light */
+  --brand-accent-soft: #ead3a0; /* pale gold wash */
+  --brand-teal: #1e7c7a; /* Arabian Gulf teal */
+  --brand-sand: #e8d9bc; /* desert sand */
+  --brand-ivory: #fbf7ef; /* ivory */
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   SEMANTIC TOKENS — light = sunlit day
+   ══════════════════════════════════════════════════════════════════ */
 :root {
   color-scheme: light;
-  --bg: var(--color-cream-50);
-  --fg: var(--color-ink-900);
+  --surface-bg: #f9f4ea;
+  --surface-panel: #f2e8d6;
+  --surface-card: #fffcf6;
+  --surface-sunk: #f1e7d5;
+  --surface-overlay: rgba(19, 35, 58, 0.42);
+  --line: #e6d8bd;
+  --line-strong: #d4bf96;
+  --ink: #13233a;
+  --ink-soft: #3d4a5c;
+  --ink-muted: #786f60;
+  --gold: var(--brand-accent);
+  --gold-ink: #8a6322;
+  --gold-glow: rgba(196, 154, 74, 0.45);
+  --on-gold: #1b1408;
+  --teal: var(--brand-teal);
+  --teal-soft: rgba(30, 124, 122, 0.1);
+  --bubble-user: var(--brand-primary);
+  --pattern-color: rgba(168, 123, 46, 0.085);
+  --skyline-color: var(--brand-accent-strong);
+  --shadow-card: 0 1px 2px rgba(19, 35, 58, 0.05),
+    0 14px 36px -18px rgba(19, 35, 58, 0.25);
+  --shadow-lift: 0 2px 6px rgba(19, 35, 58, 0.06),
+    0 24px 60px -24px rgba(19, 35, 58, 0.35);
+  --hero-wash: radial-gradient(
+      ellipse 80% 70% at 78% 8%,
+      rgba(234, 211, 160, 0.75),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 70% 60% at 0% 100%,
+      rgba(30, 124, 122, 0.08),
+      transparent 60%
+    );
+
+  /* Legacy token names (older components) mapped onto the new palette. */
+  --color-navy-900: var(--ink);
+  --color-navy-700: var(--ink-soft);
+  --color-navy-500: var(--teal);
+  --color-navy-100: var(--surface-sunk);
+  --color-orange-500: var(--gold-ink);
+  --color-orange-400: var(--gold);
+  --color-orange-300: var(--brand-accent-soft);
+  --color-cream-50: var(--surface-bg);
+  --color-cream-100: var(--surface-sunk);
+  --color-cream-200: var(--line);
+  --color-ink-900: var(--ink);
+  --color-ink-600: var(--ink-soft);
+  --color-ink-400: var(--ink-muted);
+  --color-success: #2c8e6b;
+  --color-danger: #b5463a;
+  --radius-card: 20px;
+  --radius-pill: 999px;
+  --shadow-soft: var(--shadow-card);
+
+  --bg: var(--surface-bg);
+  --fg: var(--ink);
 }
 
+/* Dark = Dubai at night: gold on navy. Follows the OS unless the visitor
+   picked a theme (html[data-theme]). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface-bg: #0a1220;
+    --surface-panel: #0e192b;
+    --surface-card: #13213a;
+    --surface-sunk: #182a45;
+    --surface-overlay: rgba(4, 8, 16, 0.6);
+    --line: #22354f;
+    --line-strong: #344b6b;
+    --ink: #f3ebdd;
+    --ink-soft: #c8bfae;
+    --ink-muted: #8e95a3;
+    --gold: #d9b26a;
+    --gold-ink: #e3c17f;
+    --gold-glow: rgba(217, 178, 106, 0.4);
+    --teal: #57b8b2;
+    --teal-soft: rgba(87, 184, 178, 0.12);
+    --bubble-user: #2a4166;
+    --pattern-color: rgba(217, 178, 106, 0.06);
+    --skyline-color: #d9b26a;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3),
+      0 14px 36px -18px rgba(0, 0, 0, 0.6);
+    --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.35),
+      0 24px 60px -24px rgba(0, 0, 0, 0.7);
+    --hero-wash: radial-gradient(
+        ellipse 80% 70% at 78% 8%,
+        rgba(217, 178, 106, 0.16),
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 70% 60% at 0% 100%,
+        rgba(87, 184, 178, 0.1),
+        transparent 60%
+      );
+    --brand-zapcom: var(--brand-zapcom-on-dark);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface-bg: #0a1220;
+  --surface-panel: #0e192b;
+  --surface-card: #13213a;
+  --surface-sunk: #182a45;
+  --surface-overlay: rgba(4, 8, 16, 0.6);
+  --line: #22354f;
+  --line-strong: #344b6b;
+  --ink: #f3ebdd;
+  --ink-soft: #c8bfae;
+  --ink-muted: #8e95a3;
+  --gold: #d9b26a;
+  --gold-ink: #e3c17f;
+  --gold-glow: rgba(217, 178, 106, 0.4);
+  --teal: #57b8b2;
+  --teal-soft: rgba(87, 184, 178, 0.12);
+  --bubble-user: #2a4166;
+  --pattern-color: rgba(217, 178, 106, 0.06);
+  --skyline-color: #d9b26a;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3),
+    0 14px 36px -18px rgba(0, 0, 0, 0.6);
+  --shadow-lift: 0 2px 6px rgba(0, 0, 0, 0.35),
+    0 24px 60px -24px rgba(0, 0, 0, 0.7);
+  --hero-wash: radial-gradient(
+      ellipse 80% 70% at 78% 8%,
+      rgba(217, 178, 106, 0.16),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 70% 60% at 0% 100%,
+      rgba(87, 184, 178, 0.1),
+      transparent 60%
+    );
+  --brand-zapcom: var(--brand-zapcom-on-dark);
+}
+
+/* Tailwind utilities for the semantic tokens: bg-card, text-ink, border-line… */
+@theme inline {
+  --color-surface: var(--surface-bg);
+  --color-panel: var(--surface-panel);
+  --color-card: var(--surface-card);
+  --color-sunk: var(--surface-sunk);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-muted: var(--ink-muted);
+  --color-gold: var(--gold);
+  --color-gold-ink: var(--gold-ink);
+  --color-on-gold: var(--on-gold);
+  --color-teal: var(--teal);
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-cormorant), "Iowan Old Style", Georgia, serif;
+}
+
+html {
+  background: var(--surface-bg);
+}
 html,
 body {
-  background: var(--bg);
-  color: var(--fg);
+  color: var(--ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background-image:
-    radial-gradient(
-      circle at 0% 0%,
-      rgba(240, 138, 44, 0.06),
-      transparent 45%
-    ),
-    radial-gradient(
-      circle at 100% 100%,
-      rgba(14, 63, 92, 0.05),
-      transparent 50%
-    );
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Mashrabiya lattice — an eight-point-star tile drawn as a mask so the
+   colour can follow the theme tokens. */
+.mashrabiya {
+  background-color: var(--pattern-color);
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'><g fill='none' stroke='black' stroke-width='1'><rect x='16' y='16' width='24' height='24'/><rect x='16' y='16' width='24' height='24' transform='rotate(45 28 28)'/><circle cx='28' cy='28' r='5'/><path d='M28 0V11M28 45V56M0 28H11M45 28H56M0 0L16 16M56 0L40 16M0 56L16 40M56 56L40 40'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'><g fill='none' stroke='black' stroke-width='1'><rect x='16' y='16' width='24' height='24'/><rect x='16' y='16' width='24' height='24' transform='rotate(45 28 28)'/><circle cx='28' cy='28' r='5'/><path d='M28 0V11M28 45V56M0 28H11M45 28H56M0 0L16 16M56 0L40 16M0 56L16 40M56 56L40 40'/></g></svg>");
+  -webkit-mask-size: 56px 56px;
+  mask-size: 56px 56px;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  font-feature-settings: "lnum" 1;
 }
 
 ::selection {
-  background: var(--color-orange-300);
-  color: var(--color-ink-900);
+  background: var(--brand-accent-soft);
+  color: #13233a;
+}
+
+/* Thin gold scrollbars inside panels. */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -76,9 +236,131 @@ body {
   }
 }
 
+/* Changed-stop highlight: a gold glow that breathes twice then settles. */
+.stop-changed {
+  box-shadow: 0 0 0 1.5px var(--gold), 0 0 0 6px var(--gold-glow),
+    var(--shadow-lift);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .stop-changed {
+    animation: stop-glow 1.6s ease-in-out 2;
+  }
+}
+@keyframes stop-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1.5px var(--gold), 0 0 0 6px var(--gold-glow),
+      var(--shadow-lift);
+  }
+  50% {
+    box-shadow: 0 0 0 1.5px var(--gold), 0 0 0 14px transparent,
+      var(--shadow-lift);
+  }
+}
+
+/* Orb waveform bars get a gentle idle wobble on top of live amplitude. */
+@media (prefers-reduced-motion: no-preference) {
+  .wave-bar {
+    animation: wave-bob 0.9s ease-in-out infinite;
+    transition: height 90ms ease-out;
+  }
+}
+@keyframes wave-bob {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.7); }
+}
+
+/* Timeline rail: dashes drift downward like a route in motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .rail-flow {
+    animation: rail-flow 1.4s linear infinite;
+  }
+}
+@keyframes rail-flow {
+  from { background-position: 0 0; }
+  to { background-position: 0 14px; }
+}
+
+/* Skeleton shimmer while the concierge is planning. */
+.shimmer {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-sunk);
+}
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, var(--gold-glow), transparent);
+  opacity: 0.5;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .shimmer::after {
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+}
+@keyframes shimmer {
+  to { transform: translateX(100%); }
+}
+
+/* Ambient hero glow — a slow drifting sun behind the headline. */
+.hero-glow {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  right: -120px;
+  top: -220px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, var(--gold-glow) 0%, transparent 65%);
+  filter: blur(10px);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero-glow {
+    animation: hero-drift 14s ease-in-out infinite alternate;
+  }
+}
+@keyframes hero-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(-60px, 40px, 0) scale(1.12); }
+}
+
+/* Night skyline: stars and a crescent only after dark. */
+.skyline-night { display: none; }
+:root[data-theme="dark"] .skyline-night { display: inline; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .skyline-night { display: inline; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .skyline-night circle { animation: twinkle 3.2s ease-in-out infinite; }
+  .skyline-night circle:nth-child(2n) { animation-delay: -1.1s; }
+  .skyline-night circle:nth-child(3n) { animation-delay: -2.2s; }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.25; }
+}
+
+/* Skyline draw-in. */
+@media (prefers-reduced-motion: no-preference) {
+  .skyline-draw > g > path,
+  .skyline-draw > g > ellipse,
+  .skyline-draw > g > circle {
+    stroke-dasharray: 1400;
+    stroke-dashoffset: 1400;
+    animation: skyline-draw 3.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+}
+@keyframes skyline-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* ──────────────────────────────────────────────────────────────────
-   Voice orb. One source of truth for the orb's visual language so
-   the keyframes don't get duplicated per-component.
+   Voice orb — a gold sun with a halo and corona. One source of truth
+   for the orb's visual language; JSX stays simple.
    ────────────────────────────────────────────────────────────────── */
 
 .orb {
@@ -96,13 +378,16 @@ body {
 
 .orb__halo {
   position: absolute;
-  inset: -28%;
+  inset: -34%;
   border-radius: 9999px;
-  background:
-    radial-gradient(circle at 50% 50%, var(--orb-halo, rgba(240, 138, 44, 0.45)) 0%, transparent 65%);
-  filter: blur(10px);
-  opacity: 0.7;
-  z-index: -2;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--orb-halo) 0%,
+    transparent 62%
+  );
+  filter: blur(8px);
+  opacity: 0.8;
+  z-index: -3;
   transition: background 600ms ease, opacity 400ms ease;
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -111,20 +396,70 @@ body {
   }
 }
 
-/* The body — three stacked radial gradients give it depth without looking
-   like a single CSS ball. The dark base is the dimensional shadow at the
-   bottom; the warm core is the "fire"; the highlight is the glassy bead. */
+/* Corona — fine radial rays, slowly turning. */
+.orb__rays {
+  position: absolute;
+  inset: -20%;
+  border-radius: 9999px;
+  background: repeating-conic-gradient(
+    from 0deg,
+    var(--orb-ring) 0deg 0.9deg,
+    transparent 0.9deg 6deg
+  );
+  -webkit-mask: radial-gradient(
+    circle at center,
+    transparent 60%,
+    #000 61%,
+    #000 66%,
+    transparent 76%
+  );
+  mask: radial-gradient(
+    circle at center,
+    transparent 60%,
+    #000 61%,
+    #000 66%,
+    transparent 76%
+  );
+  opacity: var(--orb-rays-opacity, 0.45);
+  z-index: -2;
+  pointer-events: none;
+  transition: opacity 500ms ease;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .orb__rays {
+    animation: orb-arc 80s linear infinite;
+  }
+}
+
+/* Thin halo line around the sun. */
+.orb__ring {
+  position: absolute;
+  inset: -7%;
+  border-radius: 9999px;
+  border: 1px solid var(--orb-ring);
+  opacity: 0.55;
+  z-index: -1;
+  pointer-events: none;
+}
+
 .orb__body {
   position: absolute;
   inset: 0;
   border-radius: 9999px;
-  background:
-    radial-gradient(circle at 30% 22%, rgba(255, 255, 255, 0.55), transparent 30%),
-    radial-gradient(circle at 60% 80%, rgba(11, 26, 35, 0.55), transparent 55%),
-    radial-gradient(circle at 50% 50%, var(--orb-warm, #f08a2c) 0%, var(--orb-mid, #c64f1a) 55%, var(--orb-deep, #14536f) 100%);
-  box-shadow:
-    inset 0 -14px 28px rgba(11, 26, 35, 0.35),
-    inset 0 8px 20px rgba(255, 255, 255, 0.2);
+  background: radial-gradient(
+      circle at 34% 26%,
+      rgba(255, 252, 240, 0.95) 0%,
+      rgba(255, 252, 240, 0) 36%
+    ),
+    radial-gradient(
+      circle at 50% 55%,
+      var(--orb-warm) 0%,
+      var(--orb-mid) 58%,
+      var(--orb-deep) 100%
+    );
+  box-shadow: inset 0 -14px 30px rgba(110, 66, 14, 0.35),
+    inset 0 8px 18px rgba(255, 255, 255, 0.35),
+    0 18px 50px -18px var(--orb-halo);
   transition: background 600ms ease, box-shadow 600ms ease;
 }
 @media (prefers-reduced-motion: no-preference) {
@@ -133,15 +468,12 @@ body {
   }
 }
 
-/* Sonar ripples emanate continuously when active. Three rings with
-   staggered delays. Opacity is multiplied by --orb-amp (set inline from
-   the audio-reactive amplitude) so they're invisible at silence and
-   loud at peaks. */
+/* Sonar ripples — opacity multiplied by --orb-amp (audio amplitude). */
 .orb__sonar {
   position: absolute;
   inset: 0;
   border-radius: 9999px;
-  border: 2px solid var(--orb-ring, rgba(248, 185, 122, 0.85));
+  border: 1.5px solid var(--orb-ring);
   opacity: 0;
   z-index: -1;
 }
@@ -157,27 +489,25 @@ body {
   animation-delay: -1.6s;
 }
 
-/* Status arc — a thin SVG-style ring that we draw via box gradient.
-   Used during connecting + thinking, where there's no audio yet. */
 .orb__arc {
   position: absolute;
-  inset: -6%;
+  inset: -7%;
   border-radius: 9999px;
   background: conic-gradient(
     from 0deg,
     transparent 0deg,
     transparent 240deg,
-    var(--orb-ring, rgba(248, 185, 122, 0.95)) 320deg,
+    var(--orb-ring) 330deg,
     transparent 360deg
   );
-  -webkit-mask: radial-gradient(circle at center, transparent 56%, #000 58%);
-  mask: radial-gradient(circle at center, transparent 56%, #000 58%);
+  -webkit-mask: radial-gradient(circle at center, transparent 64%, #000 66%);
+  mask: radial-gradient(circle at center, transparent 64%, #000 66%);
   opacity: 0;
   pointer-events: none;
 }
 .orb[data-state="connecting"] .orb__arc,
 .orb[data-state="reconnecting"] .orb__arc,
-.orb[data-state="thinking"] .orb__arc {
+.orb[data-voice-state="thinking"] .orb__arc {
   opacity: 1;
   animation: orb-arc 1.2s linear infinite;
 }
@@ -185,73 +515,96 @@ body {
 .orb__icon {
   position: relative;
   z-index: 1;
-  color: white;
-  filter: drop-shadow(0 1px 6px rgba(11, 26, 35, 0.45));
+  color: var(--orb-icon);
   transition: filter 200ms ease, transform 80ms ease-out;
 }
 
 @keyframes orb-halo {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.04); }
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.05);
+  }
 }
 @keyframes orb-breath {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.018); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.018);
+  }
 }
 @keyframes orb-sonar {
-  0%   { opacity: calc(0.85 * var(--orb-amp, 0.4)); transform: scale(0.92); }
-  50%  { opacity: calc(0.45 * var(--orb-amp, 0.4)); }
-  100% { opacity: 0; transform: scale(1.55); }
+  0% {
+    opacity: calc(0.85 * var(--orb-amp, 0.4));
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: calc(0.45 * var(--orb-amp, 0.4));
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.6);
+  }
 }
 @keyframes orb-arc {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* State-aware palette tokens. Colors live here so the JSX stays simple. */
-.orb[data-state="idle"],
-.orb[data-state="closed"],
-.orb[data-state="closing"] {
-  --orb-warm: #2c7193;
-  --orb-mid: #14536f;
-  --orb-deep: #0e3f5c;
-  --orb-halo: rgba(20, 83, 111, 0.35);
-  --orb-ring: rgba(244, 236, 220, 0.55);
+/* State-aware palette. Idle = soft morning sun; live = full gold;
+   speaking = warm late-afternoon amber. */
+.orb {
+  --orb-icon: #2a1d0c;
+  --orb-warm: #f6e3b4;
+  --orb-mid: #dcb46a;
+  --orb-deep: #a8762f;
+  --orb-halo: rgba(196, 154, 74, 0.32);
+  --orb-ring: rgba(196, 154, 74, 0.6);
+  --orb-rays-opacity: 0.4;
 }
 .orb[data-state="connecting"],
-.orb[data-state="reconnecting"] {
-  --orb-warm: #f5a256;
-  --orb-mid: #f08a2c;
-  --orb-deep: #14536f;
-  --orb-halo: rgba(240, 138, 44, 0.4);
-  --orb-ring: rgba(248, 185, 122, 0.85);
-}
+.orb[data-state="reconnecting"],
 .orb[data-state="active"] {
-  --orb-warm: #f5a256;
-  --orb-mid: #f08a2c;
-  --orb-deep: #14536f;
-  --orb-halo: rgba(240, 138, 44, 0.5);
-  --orb-ring: rgba(248, 185, 122, 0.85);
+  --orb-warm: #fff0c4;
+  --orb-mid: #ecbd5c;
+  --orb-deep: #b47a24;
+  --orb-halo: rgba(236, 189, 92, 0.5);
+  --orb-ring: rgba(214, 166, 74, 0.85);
+  --orb-rays-opacity: 0.7;
 }
 .orb[data-voice-state="speaking"] {
-  --orb-warm: #ffb978;
-  --orb-mid: #f08a2c;
-  --orb-deep: #c04b3a;
-  --orb-halo: rgba(255, 138, 60, 0.6);
-  --orb-ring: rgba(255, 200, 140, 0.95);
+  --orb-warm: #fff4d2;
+  --orb-mid: #f2ae48;
+  --orb-deep: #c0662a;
+  --orb-halo: rgba(242, 160, 70, 0.6);
+  --orb-ring: rgba(232, 160, 70, 0.95);
+  --orb-rays-opacity: 0.85;
 }
 .orb[data-voice-state="thinking"] {
-  --orb-halo: rgba(20, 83, 111, 0.45);
+  --orb-halo: rgba(30, 124, 122, 0.35);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .orb__halo,
   .orb__body,
   .orb__sonar,
+  .orb__rays,
   .orb__arc {
     animation: none !important;
   }
-  .orb__sonar { display: none; }
+  .orb__sonar {
+    display: none;
+  }
 }
 
 /* Print rules — used by /trip/[id]/print as the "save as PDF" path. */
@@ -260,10 +613,15 @@ body {
     margin: 0.5in;
     size: letter;
   }
+  :root {
+    --surface-bg: #ffffff;
+    --surface-card: #ffffff;
+    --ink: #13233a;
+  }
   body {
     background: white !important;
     background-image: none !important;
-    color: var(--color-ink-900);
+    color: #13233a;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }

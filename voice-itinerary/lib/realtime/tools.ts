@@ -21,6 +21,11 @@ import {
   getTransportNotes,
 } from "@/lib/data";
 import { searchFlights } from "@/lib/data/flights";
+import {
+  CONCIERGE_TOOL_DEFINITIONS,
+  CONCIERGE_TOOL_NAMES,
+  dispatchConciergeTool,
+} from "./conciergeTools";
 import { addDays, nextWeekdayDate, weekdayOf } from "./dateTable";
 import {
   type DayMode,
@@ -44,25 +49,22 @@ import {
 // OpenAI Realtime tool shape: { type: "function", name, description, parameters }
 // where parameters is JSON Schema.
 
-export const TOOL_DEFINITIONS = [
+const TRIP_TOOL_DEFINITIONS = [
   {
     type: "function" as const,
     name: "set_trip_basics",
     description:
-      "Set the trip's destination, dates, traveler count, and overall vibe. " +
-      "Use as soon as you know these. Always paint the canvas with this BEFORE speaking the spoken summary. " +
-      "ALWAYS pass start_kind, start_weekday, end_weekday — the dispatcher cross-checks every call against what the user said and rejects bad picks with ok:false + corrected ISO dates. Accept the correction aloud and re-call.",
+      "Multi-day trip: set destination, dates, travelers, vibe BEFORE speaking. Always pass start_kind/start_weekday/end_weekday; on ok:false re-call with the corrected dates.",
     parameters: {
       type: "object",
       properties: {
         destination: {
           type: "string",
-          description: "Destination key or city name (e.g. 'goa', 'tokyo').",
+          description: "Always 'dubai' (day trips to Abu Dhabi, Sharjah, RAK are inside the Dubai catalog).",
         },
         start_date: {
           type: "string",
-          description:
-            "ISO yyyy-mm-dd. Read off the date table in the system prompt — do NOT compute dates yourself. If the user named a weekday (e.g. 'Thursday'), pick the FIRST row in the date table STRICTLY AFTER today with that weekday — never today, even if today's weekday matches.",
+          description: "ISO yyyy-mm-dd from the date table.",
         },
         end_date: {
           type: "string",
@@ -84,20 +86,17 @@ export const TOOL_DEFINITIONS = [
         start_kind: {
           type: "string",
           enum: ["weekday", "date", "today", "tomorrow", "relative"],
-          description:
-            "Required. How the user described the start: 'weekday' (they said 'Thursday', 'next Sunday', etc.), 'date' (explicit date like 'May 15'), 'today' (they said 'today'/'now'), 'tomorrow' (they said 'tomorrow'), 'relative' ('next week', 'in two weeks'). The dispatcher uses this to verify start_date: 'weekday' forces start_date to be the next matching row STRICTLY AFTER today; 'today' forces start_date == today; 'tomorrow' forces start_date == today+1.",
+          description: "How the user described the start.",
         },
         start_weekday: {
           type: "string",
           enum: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
-          description:
-            "Required. The weekday of start_date as read from the date table. The dispatcher rejects any start_date whose actual weekday doesn't match this.",
+          description: "Weekday of start_date.",
         },
         end_weekday: {
           type: "string",
           enum: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
-          description:
-            "Required. The weekday of end_date as read from the date table. Same validation as start_weekday.",
+          description: "Weekday of end_date.",
         },
       },
       required: [
@@ -302,7 +301,7 @@ export const TOOL_DEFINITIONS = [
     type: "function" as const,
     name: "plan_day",
     description:
-      "Draft slots for ONE day from the destination's canonical day templates after guided personalization is complete. It returns ready-to-add slots that respect fixed_events, closed_days, opening hours, transit buffers. After it succeeds, call add_activity in parallel for each returned slot. The rationale field is a ≤25-word sentence you can voice verbatim. day_index is ZERO-INDEXED: user's 'day 1' = day_index 0.",
+      "Multi-day trips: draft ONE day from templates (respects hours, closures, fixed events). Then add_activity each returned slot. Voice the rationale. day_index is zero-based.",
     parameters: {
       type: "object",
       properties: {
@@ -341,7 +340,7 @@ export const TOOL_DEFINITIONS = [
     type: "function" as const,
     name: "propose_full_itinerary",
     description:
-      "Draft EVERY remaining day in one shot using canonical templates. Honours each day's mode, avoids template repetition, skips transit days. Returns slots[] per day plus a single ≤25-word summary you can voice. Use after guided personalization is complete, or immediately only when the user says 'just make it' / 'surprise me' or already gave enough preferences.",
+      "Multi-day trips: draft every remaining day from templates; then add_activity each slot. Use after personalization, or at once for 'just make it'.",
     parameters: {
       type: "object",
       properties: {
@@ -383,21 +382,21 @@ export const TOOL_DEFINITIONS = [
     type: "function" as const,
     name: "search_flights",
     description:
-      "Look up indicative flight options between two airports. Returns hand-curated mock data — these are NOT bookings. Use when the user mentions flying from somewhere; voice 2-3 options aloud and let them pick. When they choose one, call add_fixed_event(type:'flight') with the flight number in the title and the LOCAL arrival or departure time. Important: when arrives_next_day is true, increment day_index by one before calling add_fixed_event.",
+      "Indicative (mock) flights into Dubai. Not bookings.",
     parameters: {
       type: "object",
       properties: {
         from: {
           type: "string",
-          description: "Origin IATA code (BOM, DEL, BLR, JFK, LHR, LAX, SIN, DXB). Resolve city names to codes (Mumbai→BOM, Delhi→DEL, Bangalore→BLR, New York→JFK, London→LHR, Los Angeles→LAX, Singapore→SIN, Dubai→DXB). Unknown origins fall back to a sensible hub.",
+          description: "Origin IATA code.",
         },
         to: {
           type: "string",
-          description: "Destination IATA code (GOI=Goa, DPS=Bali, HND=Tokyo, LIS=Lisbon, DXB=Dubai). Required.",
+          description: "Destination IATA code — always DXB. Required.",
         },
         date: {
           type: "string",
-          description: "Optional ISO yyyy-mm-dd departure date — informational only; the catalog is date-agnostic.",
+          description: "Optional ISO date (informational).",
         },
         max: {
           type: "integer",
@@ -481,6 +480,9 @@ export const TOOL_DEFINITIONS = [
     parameters: { type: "object", properties: {} },
   },
 ] as const;
+
+/** Concierge (in-destination, single day) tools first, then multi-day trip tools. */
+export const TOOL_DEFINITIONS = [...CONCIERGE_TOOL_DEFINITIONS, ...TRIP_TOOL_DEFINITIONS];
 
 // ── Zod schemas for runtime validation ───────────────────────────────────────
 
@@ -633,6 +635,10 @@ export async function dispatchToolCall(
   const store = useItineraryStore.getState();
 
   try {
+    if (CONCIERGE_TOOL_NAMES.has(name as never)) {
+      const r = await dispatchConciergeTool(name, args);
+      if (r) return r;
+    }
     switch (name) {
       case "set_trip_basics": {
         const a = setTripBasicsZ.parse(args);
@@ -1432,7 +1438,7 @@ type ValidationIssue =
  * meaningful mutation and to voice any issues + pivot to a corrective
  * tool call. Catches the classes of bugs the user kept hitting:
  *  - Wed paint when user said Thursday
- *  - Palolem activity in an Anjuna stay
+ *  - Palm Jumeirah activity on an Old Dubai day
  *  - Empty leisure day after propose_full_itinerary tried
  *  - Meeting on a "leisure" day
  */

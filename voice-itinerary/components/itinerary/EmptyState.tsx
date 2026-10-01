@@ -1,58 +1,53 @@
-import { VoiceOrb } from "@/components/voice/VoiceOrb";
+"use client";
 
-const SAMPLE_PROMPTS = [
-  "5-day trip to Goa, two work days, rest chill",
-  "Long weekend in Lisbon, foodie, no museums",
-  "Tokyo for a week, cherry blossoms if I'm lucky",
-];
+import { Mic, Keyboard, MapPinned } from "lucide-react";
+import { Skyline } from "@/components/brand/Skyline";
+import { SuggestionCards } from "@/components/concierge/Suggestions";
 
+/** First-run hero: who we are, what to try. */
 export function EmptyState() {
   return (
-    <section className="relative flex flex-1 flex-col items-center justify-center px-6 py-12">
-      <div className="flex flex-col items-center text-center">
-        <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-[color:var(--color-cream-200)] bg-white/60 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-[color:var(--color-navy-700)]">
-          <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--color-success)]" />
-          Tineri voice · early access
+    <section className="relative flex flex-1 flex-col">
+      <div
+        className="relative overflow-hidden rounded-[32px] border border-line px-5 pb-0 pt-8 sm:px-10 sm:pt-12"
+        style={{ backgroundImage: "var(--hero-wash)" }}
+      >
+        <span aria-hidden className="hero-glow" />
+        <p className="mb-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-gold-ink">
+          <span aria-hidden className="h-px w-8 bg-gold" />
+          Marhaba · <span lang="ar" className="font-display text-[15px] normal-case tracking-normal">مرحبا</span>
         </p>
-
-        <h1 className="mb-3 max-w-2xl text-[42px] font-semibold leading-[1.05] tracking-tight text-[color:var(--color-navy-900)] sm:text-[56px]">
-          Plan your next trip
+        <h1 className="max-w-3xl font-display text-[44px] font-semibold leading-[0.98] tracking-tight text-ink sm:text-[64px] xl:text-[76px]">
+          Your personal
           <br />
-          <span
-            className="text-[color:var(--color-orange-500)]"
-            style={{ fontFamily: "var(--font-script)" }}
-          >
-            by talking to it.
-          </span>
+          <span className="italic text-gold-ink">Dubai</span> concierge
         </h1>
-
-        <p className="mb-12 max-w-xl text-base leading-7 text-[color:var(--color-ink-600)] sm:text-lg">
-          Press the orb. Tell it where you&apos;re going, what you&apos;ve got
-          to do, and what you don&apos;t. Watch the days fill in as you talk.
+        <p className="mt-5 max-w-xl text-[16px] leading-relaxed text-ink-soft sm:text-[18px]">
+          Tell me who you&apos;re with and where you are. I&apos;ll plan a day that
+          fits, change any part of it as you go, and point you to what&apos;s close
+          when you need a break.
         </p>
-
-        <div className="mb-10">
-          <VoiceOrb />
-        </div>
-
-        <p className="mb-3 text-xs font-medium uppercase tracking-[0.16em] text-[color:var(--color-ink-400)]">
-          try saying something like
-        </p>
-        <ul className="flex flex-wrap items-center justify-center gap-2 text-sm">
-          {SAMPLE_PROMPTS.map((s) => (
-            <li
-              key={s}
-              className="rounded-full border border-[color:var(--color-cream-200)] bg-white/70 px-3 py-1.5 text-[color:var(--color-navy-700)]"
-            >
-              &ldquo;{s}&rdquo;
-            </li>
-          ))}
+        <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-medium text-ink-soft">
+          <li className="inline-flex items-center gap-1.5">
+            <Mic className="h-4 w-4 text-gold-ink" /> Speak in English
+          </li>
+          <li className="inline-flex items-center gap-1.5">
+            <Keyboard className="h-4 w-4 text-gold-ink" /> Or type
+          </li>
+          <li className="inline-flex items-center gap-1.5">
+            <MapPinned className="h-4 w-4 text-gold-ink" /> Directions included
+          </li>
         </ul>
+
+        <Skyline animate className="mt-6 block h-auto w-full sm:mt-4" strokeWidth={1.2} />
       </div>
 
-      <p className="absolute bottom-4 right-5 text-[10px] uppercase tracking-[0.18em] text-[color:var(--color-ink-400)]">
-        we do the tech · you do the travel
-      </p>
+      <div className="mt-8">
+        <h2 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-muted">
+          Try the journey — tap a line to send it
+        </h2>
+        <SuggestionCards />
+      </div>
     </section>
   );
 }

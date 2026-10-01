@@ -1,44 +1,59 @@
 import Link from "next/link";
-import { Compass } from "lucide-react";
 import { CalendarChip } from "@/components/calendar/CalendarChip";
 import { SettingsSheet } from "./SettingsSheet";
+import { ThemeToggle } from "./ThemeToggle";
+import { ZapcomLogo } from "./ZapcomLogo";
+import { PrototypeBadge } from "./PrototypeBadge";
 
 export function TopNav() {
   return (
-    <header className="print-hide sticky top-0 z-30 border-b border-[color:var(--color-cream-200)]/60 bg-[color:var(--color-cream-50)]/85 backdrop-blur supports-[backdrop-filter]:bg-[color:var(--color-cream-50)]/65">
-      <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
-        <Link href="/" className="group flex items-baseline gap-2">
-          <span
-            className="text-3xl leading-none text-[color:var(--color-orange-500)] transition-transform group-hover:-rotate-1"
-            style={{ fontFamily: "var(--font-script)" }}
-          >
-            Tineri
-          </span>
-          <span className="hidden text-[10px] font-medium uppercase tracking-[0.18em] text-[color:var(--color-ink-400)] sm:inline">
-            voice
+    <header className="print-hide sticky top-0 z-30 h-16 border-b border-line/80 bg-surface/80 backdrop-blur-md">
+      <div className="mx-auto flex h-full w-full items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+        <Link href="/" className="group flex min-w-0 items-center gap-3" aria-label="Marhaba — Dubai AI Concierge, by Zapcom">
+          <SunMark />
+          <span className="flex min-w-0 flex-col leading-none">
+            <span className="font-display text-[26px] font-semibold leading-none tracking-tight text-ink">
+              Marhaba
+            </span>
+            <span className="mt-1 flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.16em] text-ink-muted">
+              <span className="hidden sm:inline">Dubai AI Concierge</span>
+              <span aria-hidden className="hidden sm:inline">·</span>
+              <span>by</span>
+              <span className="text-[color:var(--brand-zapcom)]">
+                <ZapcomLogo height={13} />
+              </span>
+            </span>
           </span>
         </Link>
 
-        <div className="flex items-center gap-3 text-[color:var(--color-navy-700)]">
-          <CalendarChip />
-          <a
-            href="https://opendestinations.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden items-center gap-2 rounded-full border border-[color:var(--color-cream-200)] bg-white/60 px-3 py-1.5 text-xs font-medium text-[color:var(--color-navy-900)] transition-colors hover:bg-white sm:inline-flex"
-            aria-label="Powered by Open Destinations"
-          >
-            <Compass className="h-3.5 w-3.5 text-[color:var(--color-navy-700)]" />
-            <span className="leading-none">
-              <span className="text-[10px] uppercase tracking-[0.16em] text-[color:var(--color-ink-400)]">
-                by
-              </span>{" "}
-              <span>open destinations</span>
-            </span>
-          </a>
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          <PrototypeBadge className="max-[359px]:hidden" />
+          <span className="hidden md:block">
+            <CalendarChip />
+          </span>
+          <ThemeToggle />
           <SettingsSheet />
         </div>
       </div>
     </header>
+  );
+}
+
+/** Small gold sun-and-horizon mark beside the wordmark. */
+function SunMark() {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      aria-hidden
+      className="hidden h-9 w-9 shrink-0 text-gold sm:block transition-transform duration-500 group-hover:rotate-[8deg]"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+    >
+      <circle cx="16" cy="17" r="6.5" fill="currentColor" fillOpacity="0.18" />
+      <path d="M16 4.5v3M6.8 8.3l2.1 2.1M25.2 8.3l-2.1 2.1M3.5 17h3M25.5 17h3" />
+      <path d="M3 24.5h26M7 28h18" />
+    </svg>
   );
 }

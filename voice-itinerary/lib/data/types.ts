@@ -31,6 +31,8 @@ export type AreaDef = {
   name: string;
   vibe_tags: string[];
   description: string; // 25–35 word hand-written vibe statement
+  /** Area centroid; drives distance-based transit when the matrix has no row. */
+  coords?: { lat: number; lng: number };
 };
 
 export type StayDef = {
@@ -78,6 +80,19 @@ export type ActivityDef = {
   // Food-specific (optional on non-food entries)
   cuisine?: string;
   signature_dish?: string;
+  // Concierge fields — power "help me now", directions cards and family fit.
+  coords?: { lat: number; lng: number };
+  address?: string;
+  website?: string; // official site only
+  /** Youngest age the place genuinely works for; 0 = all ages. */
+  min_age?: number;
+  /** How much walking a visit involves, independent of getting there. */
+  walking?: "minimal" | "some" | "lots";
+  /** Emirate / region for day trips outside Dubai city. */
+  emirate?: "dubai" | "abu_dhabi" | "sharjah" | "ras_al_khaimah" | "ajman" | "fujairah" | "umm_al_quwain";
+  /** One-line, visitor-facing description for the detail card. */
+  details?: string;
+  image_credit?: string;
 };
 
 export type DayTemplateSlot = {

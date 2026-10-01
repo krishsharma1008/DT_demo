@@ -93,25 +93,25 @@ export function ShareBar() {
               }),
             });
           }}
-          className="inline-flex items-center gap-2 rounded-full bg-[color:var(--color-orange-500)] px-4 py-1.5 text-sm font-semibold text-white shadow-[var(--shadow-soft)] transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[color:var(--color-orange-300)]"
+          className="inline-flex items-center gap-2 rounded-full bg-gold px-4 py-1.5 text-[13px] font-semibold text-on-gold shadow-[var(--shadow-card)] transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/40"
         >
           <Lock className="h-3.5 w-3.5" />
-          Finalize trip
+          Save & share
         </button>
       )}
 
       {status === "finalized" && shareUrl && share_id && (
-        <div className="flex items-center gap-2 rounded-full border border-[color:var(--color-cream-200)] bg-white/80 px-3 py-1.5 text-sm">
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-card/90 px-3 py-1.5 text-sm">
           <Link
             href={`/trip/${share_id}`}
-            className="font-mono text-[color:var(--color-navy-700)] underline-offset-2 hover:underline"
+            className="max-w-[180px] truncate font-mono text-xs text-ink-soft underline-offset-2 hover:underline"
           >
             {shareUrl.replace(/^https?:\/\//, "")}
           </Link>
           <Link
             href={`/trip/${share_id}`}
             aria-label="Open share view"
-            className="rounded-full bg-[color:var(--color-cream-100)] px-2 py-1 text-xs font-medium text-[color:var(--color-navy-900)] transition-colors hover:bg-[color:var(--color-cream-200)]"
+            className="rounded-full bg-sunk px-2 py-1 text-xs font-medium text-ink transition-colors hover:bg-gold/15"
           >
             <span className="inline-flex items-center gap-1">
               <ExternalLink className="h-3 w-3" /> open
@@ -121,7 +121,7 @@ export function ShareBar() {
             type="button"
             onClick={onCopy}
             aria-label="Copy share link"
-            className="rounded-full bg-[color:var(--color-cream-100)] px-2 py-1 text-xs font-medium text-[color:var(--color-navy-900)] transition-colors hover:bg-[color:var(--color-cream-200)]"
+            className="rounded-full bg-sunk px-2 py-1 text-xs font-medium text-ink transition-colors hover:bg-gold/15"
           >
             {copied ? (
               <span className="inline-flex items-center gap-1">
@@ -138,7 +138,7 @@ export function ShareBar() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Print or save as PDF"
-            className="rounded-full bg-[color:var(--color-cream-100)] px-2 py-1 text-xs font-medium text-[color:var(--color-navy-900)] transition-colors hover:bg-[color:var(--color-cream-200)]"
+            className="rounded-full bg-sunk px-2 py-1 text-xs font-medium text-ink transition-colors hover:bg-gold/15"
           >
             <span className="inline-flex items-center gap-1">
               <Printer className="h-3 w-3" /> print / pdf
@@ -147,7 +147,7 @@ export function ShareBar() {
           <a
             href={`/api/export/${share_id}/ics`}
             aria-label="Download as calendar file"
-            className="rounded-full bg-[color:var(--color-cream-100)] px-2 py-1 text-xs font-medium text-[color:var(--color-navy-900)] transition-colors hover:bg-[color:var(--color-cream-200)]"
+            className="rounded-full bg-sunk px-2 py-1 text-xs font-medium text-ink transition-colors hover:bg-gold/15"
           >
             <span className="inline-flex items-center gap-1">
               <CalendarPlus className="h-3 w-3" /> add to calendar
@@ -159,7 +159,7 @@ export function ShareBar() {
       <button
         type="button"
         onClick={reset}
-        className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-cream-200)] bg-white/60 px-3 py-1.5 text-xs text-[color:var(--color-ink-600)] hover:bg-white"
+        className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card/70 px-3 py-1.5 text-xs font-medium text-ink-soft hover:bg-card hover:text-ink"
       >
         <RotateCcw className="h-3 w-3" />
         Start over

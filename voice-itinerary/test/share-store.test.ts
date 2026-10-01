@@ -12,9 +12,9 @@ import {
 const tempDirs: string[] = [];
 
 afterEach(() => {
-  delete process.env.TINERI_SHARE_STORE_PATH;
+  delete process.env.MARHABA_SHARE_STORE_PATH;
   shareStore.clear();
-  globalThis.__tineriShareStoreLoadedFrom = undefined;
+  globalThis.__marhabaShareStoreLoadedFrom = undefined;
   for (const dir of tempDirs.splice(0)) {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -22,22 +22,22 @@ afterEach(() => {
 
 describe("share store", () => {
   test("reloads saved trips from disk after memory is cleared", () => {
-    const dir = mkdtempSync(join(tmpdir(), "tineri-share-store-"));
+    const dir = mkdtempSync(join(tmpdir(), "marhaba-share-store-"));
     tempDirs.push(dir);
-    process.env.TINERI_SHARE_STORE_PATH = join(dir, "shares.json");
+    process.env.MARHABA_SHARE_STORE_PATH = join(dir, "shares.json");
 
     saveSharedTrip("abc123", {
-      trip: { destination_name: "Goa" },
+      trip: { destination_name: "Dubai" },
       days: [],
     });
 
     shareStore.clear();
-    globalThis.__tineriShareStoreLoadedFrom = undefined;
+    globalThis.__marhabaShareStoreLoadedFrom = undefined;
 
     const reloaded = getSharedTrip("abc123");
     assert.equal(reloaded?.share_id, "abc123");
     assert.deepEqual(reloaded?.payload, {
-      trip: { destination_name: "Goa" },
+      trip: { destination_name: "Dubai" },
       days: [],
     });
   });

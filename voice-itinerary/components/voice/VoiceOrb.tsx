@@ -1,11 +1,16 @@
 "use client";
 
-import { Mic, MicOff, Loader2, PowerOff } from "lucide-react";
+import { Mic, Loader2, PowerOff } from "lucide-react";
 import { useVoiceStore } from "@/lib/store/voice";
 import { useAudioReactive } from "@/lib/voice/useAudioReactive";
 import { useVoiceSession } from "./VoiceSessionProvider";
 
-type Variant = "primary" | "fab";
+/**
+ * primary — large sun with status line (concierge column)
+ * fab     — fixed bottom-right (share page)
+ * dock    — compact, inline (mobile bottom dock)
+ */
+type Variant = "primary" | "fab" | "dock";
 
 function prefersReducedMotion(): boolean {
   if (typeof window === "undefined" || !window.matchMedia) return false;
@@ -13,13 +18,16 @@ function prefersReducedMotion(): boolean {
 }
 
 /**
- * VoiceOrb is purely presentational. The connection itself lives in
- * VoiceSessionProvider (in app/layout.tsx) so the WebRTC session survives
- * route changes between / and /trip/[id]. The orb's only responsibility
- * is to render the right visuals for the current state and forward
- * tap → connect / disconnect.
+ * VoiceOrb is purely presentational: a gold sun with a halo and corona.
+ * The connection itself lives in VoiceSessionProvider (in app/layout.tsx) so
+ * the WebRTC session survives route changes. The orb renders the current
+ * state and forwards tap → connect / disconnect. Its glow, corona and sonar
+ * rings react to live mic / speaker amplitude.
  */
-export function VoiceOrb({ variant = "primary" }: { variant?: Variant } = {}) {
+export function VoiceOrb({
+  variant = "primary",
+  size,
+}: { variant?: Variant; size?: number } = {}) {
   const session = useVoiceSession();
   const { conn, hint, micStream, remoteStream, connect, disconnect } = session;
 
@@ -48,17 +56,32 @@ export function VoiceOrb({ variant = "primary" }: { variant?: Variant } = {}) {
   };
 
   const isBusy = conn === "connecting" || conn === "reconnecting";
-  const Icon = isLive ? Mic : isBusy ? Loader2 : MicOff;
+  const Icon = isBusy ? Loader2 : Mic;
 
   const isFab = variant === "fab";
-  const orbSize = isFab ? 96 : 220;
-  const iconSize = isFab ? "h-6 w-6" : "h-12 w-12";
+  const isDock = variant === "dock";
+  const orbSize = size ?? (isDock ? 52 : isFab ? 84 : 220);
+  const iconSize =
+    orbSize <= 60 ? "h-5 w-5" : orbSize <= 110 ? "h-6 w-6" : orbSize <= 180 ? "h-9 w-9" : "h-11 w-11";
 
-  const bodyScale = 1 + amp * 0.04;
+  const bodyScale = 1 + amp * 0.05;
   const iconScale = 1 + amp * 0.08;
   const sonarActive =
     isLive && (voiceState === "listening" || voiceState === "speaking");
   const orbAmp = sonarActive ? Math.max(0.25, amp) : 0;
+
+  const statusText =
+    conn === "idle" || conn === "closed"
+      ? "Tap the sun to speak"
+      : conn === "reconnecting"
+        ? "Reconnecting…"
+        : conn === "connecting"
+          ? "Connecting…"
+          : isSpeaking
+            ? "Speaking…"
+            : voiceState === "thinking"
+              ? "Thinking…"
+              : "Listening — speak naturally";
 
   const button = (
     <button
@@ -71,14 +94,12 @@ export function VoiceOrb({ variant = "primary" }: { variant?: Variant } = {}) {
             ? "Reconnecting…"
             : isBusy
               ? "Connecting…"
-              : isFab
-                ? "Press to keep editing by voice"
-                : "Press to plan your trip with voice"
+              : "Press to talk to your Dubai concierge"
       }
       data-state={conn}
       data-voice-state={voiceState}
       data-active={sonarActive ? "true" : "false"}
-      className="orb focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[color:var(--color-orange-300)]"
+      className="orb shrink-0 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gold/60"
       style={
         {
           width: orbSize,
@@ -87,7 +108,17 @@ export function VoiceOrb({ variant = "primary" }: { variant?: Variant } = {}) {
         } as React.CSSProperties
       }
     >
-      <span aria-hidden className="orb__halo" />
+      <span
+        aria-hidden
+        className="orb__halo"
+        style={isLive ? { opacity: 0.7 + amp * 0.3 } : undefined}
+      />
+      <span
+        aria-hidden
+        className="orb__rays"
+        style={isLive ? { opacity: 0.55 + amp * 0.45 } : undefined}
+      />
+      <span aria-hidden className="orb__ring" />
       <span aria-hidden className="orb__sonar orb__sonar--1" />
       <span aria-hidden className="orb__sonar orb__sonar--2" />
       <span aria-hidden className="orb__sonar orb__sonar--3" />
@@ -98,41 +129,51 @@ export function VoiceOrb({ variant = "primary" }: { variant?: Variant } = {}) {
       />
       <span aria-hidden className="orb__arc" />
       <Icon
-        className={`orb__icon ${iconSize}`}
+        className={`orb__icon ${iconSize} ${isBusy ? "motion-safe:animate-spin" : ""}`}
         strokeWidth={1.6}
         style={{
-          transform: `scale(${iconScale})`,
+          transform: isBusy ? undefined : `scale(${iconScale})`,
           filter: isLive
-            ? `drop-shadow(0 0 ${4 + amp * 14}px rgba(255,255,255,0.85))`
+            ? `drop-shadow(0 0 ${3 + amp * 10}px rgba(255,244,214,0.9))`
             : undefined,
         }}
       />
     </button>
   );
 
+  if (isDock) {
+    return (
+      <div className="relative flex items-center gap-1.5">
+        {button}
+        {isLive && (
+          <button
+            type="button"
+            onClick={handleEndSession}
+            aria-label="End voice session"
+            className="grid h-8 w-8 place-items-center rounded-full border border-line bg-card text-ink-soft transition-colors hover:text-ink"
+          >
+            <PowerOff className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+    );
+  }
+
   if (isFab) {
     return (
       <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2 print-hide">
         {button}
-        <p className="rounded-full bg-white/85 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.16em] text-[color:var(--color-ink-600)] shadow-[var(--shadow-soft)]">
-          {conn === "idle" || conn === "closed"
-            ? "tap to keep editing"
-            : conn === "reconnecting"
-              ? "reconnecting…"
-              : conn === "connecting"
-                ? "tuning in…"
-                : isSpeaking
-                  ? "speaking…"
-                  : "listening"}
+        <p className="rounded-full border border-line bg-card/90 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-soft shadow-[var(--shadow-card)]">
+          {statusText}
         </p>
         {isLive && (
           <button
             type="button"
             onClick={handleEndSession}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-cream-200)] bg-white/90 px-3 py-1 text-[11px] font-medium text-[color:var(--color-ink-600)] shadow-[var(--shadow-soft)] hover:bg-white"
+            className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card/90 px-3 py-1 text-[11px] font-medium text-ink-soft shadow-[var(--shadow-card)] hover:bg-card"
           >
             <PowerOff className="h-3 w-3" />
-            end session
+            End session
           </button>
         )}
         {hint && (
@@ -148,34 +189,54 @@ export function VoiceOrb({ variant = "primary" }: { variant?: Variant } = {}) {
     <div className="flex flex-col items-center">
       {button}
 
-      <p className="mt-6 text-xs uppercase tracking-[0.18em] text-[color:var(--color-ink-400)]">
-        {conn === "idle" || conn === "closed"
-          ? "press the orb to begin"
-          : conn === "reconnecting"
-            ? "reconnecting…"
-            : conn === "connecting"
-              ? "tuning in…"
-              : isSpeaking
-                ? "speaking…"
-                : "listening · talk like you're texting a friend"}
+      <Waveform amp={amp} active={sonarActive} speaking={isSpeaking} />
+
+      <p
+        className="mt-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-gold-ink"
+        aria-live="polite"
+      >
+        {statusText}
       </p>
 
       {isLive && (
         <button
           type="button"
           onClick={handleEndSession}
-          className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-cream-200)] bg-white/70 px-3 py-1.5 text-xs font-medium text-[color:var(--color-ink-600)] transition-colors hover:bg-white"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-line bg-card/70 px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:bg-card hover:text-ink"
         >
           <PowerOff className="h-3 w-3" />
-          end session
+          End session
         </button>
       )}
 
       {hint && (
-        <p className="mt-3 max-w-md text-center text-xs text-[color:var(--color-danger)]">
+        <p className="mt-3 max-w-xs text-center text-xs text-[color:var(--color-danger)]">
           {hint}
         </p>
       )}
+    </div>
+  );
+}
+
+const BAR_SHAPE = [0.45, 0.7, 1, 0.8, 0.55, 0.9, 0.6];
+
+/** Live level meter under the sun — amplitude-driven, gold when speaking. */
+function Waveform({ amp, active, speaking }: { amp: number; active: boolean; speaking: boolean }) {
+  return (
+    <div
+      aria-hidden
+      className={`mt-6 flex h-7 items-center gap-[3px] transition-opacity duration-300 ${active ? "opacity-100" : "opacity-0"}`}
+    >
+      {BAR_SHAPE.map((k, i) => (
+        <span
+          key={i}
+          className={`wave-bar w-[3px] rounded-full ${speaking ? "bg-gold" : "bg-teal"}`}
+          style={{
+            height: `${Math.max(4, Math.min(28, 4 + amp * 40 * k))}px`,
+            animationDelay: `${i * 90}ms`,
+          }}
+        />
+      ))}
     </div>
   );
 }

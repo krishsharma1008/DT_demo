@@ -18,6 +18,7 @@ import {
 import { TOOL_DEFINITIONS, dispatchToolCall } from "@/lib/realtime/tools";
 import { buildSystemPrompt } from "@/lib/realtime/prompt";
 import { messageItemFromTurn } from "@/lib/realtime/events";
+import { dubaiNow } from "@/lib/concierge/clock";
 
 const DUCK_SAFETY_MS = 1500;
 
@@ -38,6 +39,8 @@ type VoiceSession = {
   navigateAfterFinalize: ((shareId: string) => void) | null;
   connect: () => Promise<void>;
   disconnect: () => Promise<void>;
+  /** Send a typed message; connects first if no session is running. */
+  sendText: (text: string) => Promise<void>;
 };
 
 const Ctx = createContext<VoiceSession | null>(null);
@@ -96,6 +99,8 @@ export function VoiceSessionProvider({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const clientRef = useRef<RealtimeClient | null>(null);
   const duckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingTextRef = useRef<string | null>(null);
+  const rateRetriesRef = useRef(0);
   const navRef = useRef(navigateAfterFinalize);
   navRef.current = navigateAfterFinalize;
 
@@ -149,9 +154,8 @@ export function VoiceSessionProvider({
     if (conn !== "idle" && conn !== "closed") return;
     setHint(null);
 
-    console.log("%c[voice] connect — build v4 (transcript cross-check)", "color:#6cf;font-weight:bold");
-
-    const today = localIsoDate();
+    const now = dubaiNow();
+    const today = now.date;
 
     const mode = process.env.NEXT_PUBLIC_CALENDAR_MODE;
     let existing_commitments: Awaited<
@@ -164,6 +168,7 @@ export function VoiceSessionProvider({
     const itinSnapshot = formatItinerarySnapshot(useItineraryStore.getState());
     const instructions = buildSystemPrompt({
       current_date: today,
+      current_time: now.time,
       existing_commitments,
       itinerary_snapshot: itinSnapshot,
     });
@@ -266,13 +271,25 @@ export function VoiceSessionProvider({
               });
             }
 
+            const pending = pendingTextRef.current;
+            pendingTextRef.current = null;
+            if (pending) {
+              // Typed first message: answer it directly instead of greeting.
+              client.send({
+                type: "conversation.item.create",
+                item: messageItemFromTurn("user", pending),
+              });
+              client.send({ type: "response.create" });
+              break;
+            }
+
             const hasContext = prior.length > 0 || Boolean(itinSnapshot);
             client.send({
               type: "response.create",
               response: {
                 instructions: hasContext
-                  ? "Pick up where we left off. ONE short sentence (≤10 words) acknowledging the current trip state — do NOT re-greet, do NOT ask 'where are we going', do NOT recap the whole itinerary. Then wait for the user."
-                  : "Greet the user in one short sentence (≤12 words). End with: where are we going?",
+                  ? "Pick up where we left off. ONE short sentence (≤10 words) acknowledging the current plan — do NOT re-greet, do NOT recap the whole itinerary. Then wait for the user."
+                  : "Greet the visitor warmly in one short sentence (≤14 words) as their Dubai concierge, then ask how you can help with their day in Dubai.",
               },
             });
             break;
@@ -304,9 +321,25 @@ export function VoiceSessionProvider({
             finalizeAssistantTurn(e.response_id, e.transcript);
             break;
           }
-          case "response.done":
+          case "response.done": {
+            const r = (event as { response?: { status?: string; status_details?: { error?: { code?: string; message?: string } } } }).response;
+            const err = r?.status === "failed" ? r.status_details?.error : undefined;
+            if (err?.code === "rate_limit_exceeded" && rateRetriesRef.current < 3) {
+              // Account token-per-minute cap: wait the advised time, then retry.
+              rateRetriesRef.current += 1;
+              const secs = Number(/try again in ([\d.]+)s/i.exec(err.message ?? "")?.[1] ?? 6);
+              setHint("One moment — catching my breath…");
+              setVoiceState("thinking");
+              setTimeout(() => {
+                setHint(null);
+                client.send({ type: "response.create" });
+              }, Math.ceil(secs * 1000) + 500);
+              break;
+            }
+            if (r?.status === "completed") rateRetriesRef.current = 0;
             setVoiceState("listening");
             break;
+          }
           case "conversation.item.input_audio_transcription.completed": {
             const e = event as {
               type: string;
@@ -323,8 +356,11 @@ export function VoiceSessionProvider({
 
     try {
       if (!audioRef.current) return;
-      await client.connect(audioRef.current);
-      setMic("granted");
+      // ?mic=0 runs text-only (handy for kiosks and automated checks).
+      const micParam = new URLSearchParams(window.location.search).get("mic");
+      const wantMic = micParam !== "0";
+      await client.connect(audioRef.current, { mic: wantMic });
+      if (wantMic && client.getMicStream()) setMic("granted");
     } catch (err) {
       console.error("[voice] connect failed", err);
     }
@@ -346,6 +382,24 @@ export function VoiceSessionProvider({
     setHint(null);
   }, []);
 
+  const sendText = useCallback(
+    async (raw: string) => {
+      const text = raw.trim();
+      if (!text) return;
+      appendUserTurn(`typed_${Date.now()}`, text);
+      const client = clientRef.current;
+      if (client && client.getState() === "active") {
+        client.send({ type: "conversation.item.create", item: messageItemFromTurn("user", text) });
+        client.send({ type: "response.create" });
+        setVoiceState("thinking");
+        return;
+      }
+      pendingTextRef.current = text;
+      await connect();
+    },
+    [appendUserTurn, connect, setVoiceState],
+  );
+
   const value = useMemo<VoiceSession>(
     () => ({
       conn,
@@ -355,8 +409,10 @@ export function VoiceSessionProvider({
       navigateAfterFinalize: navigateAfterFinalize ?? null,
       connect,
       disconnect,
+      sendText,
     }),
     [
+      sendText,
       conn,
       hint,
       micStream,

@@ -6,7 +6,7 @@ import {
   suggestSlots,
   trySchedule,
 } from "@/lib/realtime/scheduler";
-import { goa } from "@/lib/data/goa";
+import { dubai } from "@/lib/data";
 import type { ItineraryDay } from "@/lib/store/itinerary";
 
 function buildDays(start_iso: string, end_iso: string): ItineraryDay[] {
@@ -35,7 +35,7 @@ describe("scheduler.planDay", () => {
   test("draws from chill template for leisure day", () => {
     const days = buildDays("2026-05-15", "2026-05-19");
     const day = days[2]!; // 2026-05-17, a Sunday
-    const r = planDay({ day, dest: goa, intent: "chill" });
+    const r = planDay({ day, dest: dubai, intent: "chill" });
     assert.equal(r.ok, true);
     if (!r.ok) return;
     assert.ok(r.slots.length > 0, "should produce slots");
@@ -49,27 +49,23 @@ describe("scheduler.planDay", () => {
   test("travel day returns ok:false with transit_day reason", () => {
     const days = buildDays("2026-05-15", "2026-05-19");
     const day = { ...days[0]!, mode: "travel" as const };
-    const r = planDay({ day, dest: goa, intent: "auto" });
+    const r = planDay({ day, dest: dubai, intent: "auto" });
     assert.equal(r.ok, false);
     if (r.ok) return;
     assert.equal(r.reason, "transit_day");
   });
 
-  test("closed_days slot is dropped on Monday for the Anjuna flea market", () => {
-    // The Anjuna flea market in goa.ts is Wednesday-only — its closed_days
-    // exclude all other days. On a Monday, plan_day must skip that slot.
-    const days = buildDays("2026-05-18", "2026-05-22"); // Mon→Fri
-    const day = days[0]!; // Monday
-    const r = planDay({ day, dest: goa, intent: "chill" });
-    if (!r.ok) {
-      // Monday is heavily filtered; some templates may all reduce to empty.
-      // If so, that's a valid outcome — but if ok:true, no flea market slot.
-      return;
+  test("closed_days slots are dropped (Jumeirah Mosque tours skip Friday)", () => {
+    const days = buildDays("2026-05-15", "2026-05-15"); // Friday
+    const day = days[0]!;
+    for (const intent of ["cultural", "chill", "auto"] as const) {
+      const r = planDay({ day, dest: dubai, intent });
+      if (!r.ok) continue;
+      for (const s of r.slots) {
+        const p = [...dubai.activities, ...dubai.food].find((x) => x.id === s.activity_id);
+        if (p) assert.ok(!p.closed_days.includes("fri"), `${p.name} is closed on Friday`);
+      }
     }
-    const fleaMarket = r.slots.find(
-      (s) => s.activity_id === "act_anjuna_flea_market",
-    );
-    assert.equal(fleaMarket, undefined, "flea market is closed Mon");
   });
 
   test("fixed_event causes overlapping slots to be dropped", () => {
@@ -79,15 +75,15 @@ describe("scheduler.planDay", () => {
       fixed_events: [
         {
           id: "f1",
-          title: "Meeting with Anand",
+          title: "Client meeting",
           type: "meeting" as const,
           start_time: "11:00",
           duration_min: 90,
-          location: "Panjim, Goa",
+          location: "DIFC, Dubai",
         },
       ],
     };
-    const r = planDay({ day, dest: goa, intent: "work" });
+    const r = planDay({ day, dest: dubai, intent: "work" });
     assert.equal(r.ok, true);
     if (!r.ok) return;
     // No slot should overlap 11:00–12:30 (plus pre/post buffer).
@@ -108,14 +104,14 @@ describe("scheduler.planDay", () => {
     const day = days[0]!;
     const r = planDay({
       day,
-      dest: goa,
+      dest: dubai,
       intent: "chill",
-      must_include: ["act_anjuna_cliff_sunset"],
+      must_include: ["act_dubai_frame"],
     });
     assert.equal(r.ok, true);
     if (!r.ok) return;
     const anchor = r.slots.find(
-      (s) => s.activity_id === "act_anjuna_cliff_sunset",
+      (s) => s.activity_id === "act_dubai_frame",
     );
     assert.ok(anchor, "must_include item is in the slots");
   });
@@ -123,7 +119,7 @@ describe("scheduler.planDay", () => {
   test("returns ok:false when no templates exist (empty templates array)", () => {
     const days = buildDays("2026-05-15", "2026-05-19");
     const day = days[0]!;
-    const stripped = { ...goa, canonical_day_templates: [] };
+    const stripped = { ...dubai, canonical_day_templates: [] };
     const r = planDay({ day, dest: stripped });
     assert.equal(r.ok, false);
     if (r.ok) return;
@@ -132,9 +128,9 @@ describe("scheduler.planDay", () => {
 });
 
 describe("scheduler.proposeFullItinerary", () => {
-  test("plans every day on a 5-day Goa trip", () => {
+  test("plans every day on a 5-day Dubai trip", () => {
     const days = buildDays("2026-05-15", "2026-05-19");
-    const r = proposeFullItinerary({ days, dest: goa });
+    const r = proposeFullItinerary({ days, dest: dubai });
     assert.equal(r.ok, true);
     assert.equal(r.days.length, 5);
     assert.ok(r.summary.length > 0, "summary present");
@@ -143,7 +139,7 @@ describe("scheduler.proposeFullItinerary", () => {
 
   test("rotates templates so adjacent days don't repeat", () => {
     const days = buildDays("2026-05-15", "2026-05-19");
-    const r = proposeFullItinerary({ days, dest: goa });
+    const r = proposeFullItinerary({ days, dest: dubai });
     const template_ids = r.days
       .map((d) => (d.ok ? d.template_id : null))
       .filter((id): id is string => Boolean(id));
@@ -160,14 +156,14 @@ describe("scheduler.proposeFullItinerary", () => {
     const days = buildDays("2026-05-15", "2026-05-19");
     days[0]!.mode = "work";
     days[1]!.mode = "work";
-    const r = proposeFullItinerary({ days, dest: goa });
+    const r = proposeFullItinerary({ days, dest: dubai });
     const day0 = r.days[0];
     assert.ok(day0?.ok, "day 0 plan");
     if (day0?.ok) {
       // Work template should bias toward the work-from-cafe template.
       assert.equal(
         day0.template_id,
-        "tpl_work_from_cafe",
+        "tpl_dubai_work_cafe",
         "work day picks work template",
       );
     }

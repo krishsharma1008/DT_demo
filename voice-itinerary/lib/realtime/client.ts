@@ -62,8 +62,10 @@ export class RealtimeClient {
   private audioEl: HTMLAudioElement | null = null;
   private state: ConnState = "idle";
   private cb: RealtimeClientCallbacks;
-  private model = "gpt-realtime";
+  private model = "gpt-realtime-2.1";
   private reconnectAttempted = false;
+  /** When false (or the mic is denied) the session runs receive-only: type to talk. */
+  private wantMic = true;
   private intentionalClose = false;
 
   constructor(callbacks: RealtimeClientCallbacks = {}) {
@@ -101,11 +103,12 @@ export class RealtimeClient {
    * Connects to OpenAI Realtime via WebRTC.
    * Mints token → gets mic → SDP offer → POST to /v1/realtime/calls → SDP answer.
    */
-  async connect(audioEl: HTMLAudioElement): Promise<void> {
+  async connect(audioEl: HTMLAudioElement, opts: { mic?: boolean } = {}): Promise<void> {
     if (this.state !== "idle" && this.state !== "closed") {
       throw new Error(`connect() called in state ${this.state}`);
     }
     this.audioEl = audioEl;
+    this.wantMic = opts.mic ?? true;
     this.reconnectAttempted = false;
     this.intentionalClose = false;
     await this.establish("connecting");
@@ -180,18 +183,22 @@ export class RealtimeClient {
     };
     this.model = model;
 
-    try {
-      this.mic = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-        video: false,
-      });
-    } catch (err) {
-      this.fail(err, "Microphone permission denied or unavailable");
-      throw err;
+    this.mic = null;
+    if (this.wantMic) {
+      try {
+        this.mic = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+          video: false,
+        });
+      } catch (err) {
+        // Keep going receive-only so the visitor can still type.
+        console.warn("[realtime] mic unavailable, continuing text-only", err);
+        this.cb.onError?.(new Error("Microphone unavailable — you can type instead."));
+      }
     }
 
     this.pc = new RTCPeerConnection();
@@ -204,8 +211,12 @@ export class RealtimeClient {
     };
     this.pc.onconnectionstatechange = () => this.handleConnectionStateChange();
 
-    for (const track of this.mic.getTracks()) {
-      this.pc.addTrack(track, this.mic);
+    if (this.mic) {
+      for (const track of this.mic.getTracks()) {
+        this.pc.addTrack(track, this.mic);
+      }
+    } else {
+      this.pc.addTransceiver("audio", { direction: "recvonly" });
     }
 
     this.dc = this.pc.createDataChannel("oai-events");

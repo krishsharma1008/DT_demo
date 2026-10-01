@@ -1,8 +1,10 @@
-# Tineri Voice — voice-based itinerary builder
+# Marhaba — Dubai AI Concierge, by Zapcom
 
-White-label demo for **Open Destinations / Tineri**. Press the orb, say where
-you're going, and watch your itinerary build itself. Powered by the OpenAI
-Realtime API (`gpt-realtime`) over WebRTC.
+An illustrative prototype of a voice-led concierge for visitors to Dubai.
+Talk (or type) to plan a day, change one stop, get help nearby right now, and
+open a place card with directions. The itinerary stays in session memory, so
+later requests never require restating the trip. Multi-day trip planning is
+also supported. Powered by the OpenAI Realtime API (`gpt-realtime-2.1`, `gpt-transcribe`) over WebRTC.
 
 ## Setup (≤5 minutes)
 
@@ -12,8 +14,23 @@ cp .env.local.example .env.local   # then paste your OPENAI_API_KEY
 pnpm dev                            # http://localhost:3000
 ```
 
-Open in **Chrome** (Safari has stricter autoplay rules; works but may need an
-extra click). Click the orb. Allow the mic. Talk.
+Open in **Chrome**. Click the orb and allow the mic — or just type in the
+message box.
+
+## Demo script (the four client use cases)
+
+1. **Plan my day** — "We are near Downtown with two children, aged 8 and 12.
+   We have today free and do not want much walking."
+2. **Change one part** — "My younger child does not want a museum. Can we do
+   something indoors instead?" *(only that stop changes, highlighted)*
+3. **Help me now** — "We are tired. What can we do within 20 minutes from
+   here?" *(two nearby options for the family)*
+4. **Take the next step** — "Tell me more about that place. How do we get
+   there?" *(detail card + Get directions)*
+
+Presenter URL options: `?clock=10:30` pins Dubai time (so "now" behaves the
+same whenever you demo), `?date=2026-12-04` pins the date, `?mic=0` runs
+text-only.
 
 ## Environment
 
@@ -21,69 +38,29 @@ extra click). Click the orb. Allow the mic. Talk.
 | --- | --- | --- |
 | `OPENAI_API_KEY` | yes | Server-only. Never reaches the browser. |
 | `ALLOWED_ORIGINS` | optional | Comma-separated extra origins for `/api/realtime/session`. Same-origin always allowed. |
-| `NEXT_PUBLIC_CALENDAR_MODE` | optional | `mock` to inject the demo calendar fixture (a Panjim meeting on 2026-05-16 at 15:00). Leave unset for off. |
+| `NEXT_PUBLIC_CALENDAR_MODE` | optional | `mock` to inject the demo calendar fixture (a DIFC meeting). Leave unset for off. |
 
 The key is read by the server route `app/api/realtime/session/route.ts`,
 which mints a short-lived ephemeral `client_secret` per call. The browser
 only ever sees that ephemeral key (and only for ~60s).
 
-## Canonical demo (Goa, 90s)
-
-1. **You:** "Plan a five-day trip to Goa starting May 15. Two working days,
-   the rest chill. I have a meeting in Panjim on day two at three pm."
-2. *Trip header + 5-day strip paint in. Day 2 shows the Panjim meeting
-   pinned at 15:00.*
-3. **Tineri:** "Got it — solo trip?"
-4. **You:** "Solo, yeah."
-5. **Tineri:** "Putting you in North Goa near Anjuna — sound good?"
-6. **You:** "Perfect."
-7. *Stay card lands. Days fill in — work-from-cafe, sunset cliff walk,
-   Anjuna flea market on Wednesday, Curlies sundowner.*
-8. **You:** "Move the cliff hike to sunset on day three."
-9. *Card animates to 17:30 on Day 3.*
-10. **You:** "Lock it in."
-11. *URL flips to `/trip/<id>`. Share link copied.*
-
-A second mini-demo: open a fresh session and say *"three days in Tokyo,
-foodie, no museums"* — proves robustness across destinations *(Goa is the
-only catalog wired today; Bali / Tokyo / Lisbon / Dubai are Task #8)*.
-
 ## What's wired today
 
-- `gpt-realtime` over WebRTC, `semantic_vad` turn detection, ephemeral
-  client-secret minting
-- 19 tools the model can call: `set_trip_basics`, `set_day_modes`,
-  `add_fixed_event`, `set_stay`, `add_activity` (constraint-aware),
-  `move_activity`, `remove_activity`, `set_preferences`, `query_catalog`,
-  `get_destination_context`, `suggest_slots`, `validate_itinerary`,
-  `finalize_itinerary`, `open_print`, `export_ics`,
-  `search_flights` (mock data, ~30 curated routes from major hubs),
-  `suggest_stays` (proactive ranking by vibe/budget/work-friendly),
-  `suggest_nearby` (transit-radius activity discovery),
-  `get_transport_info` (airport transfers + intracity)
-- Multilingual — auto-detects user's language from the first turn and
-  replies in kind. Catalog place names + tool args stay in original/ISO.
-- Audio-reactive orb — outer rings scale with mic RMS while listening,
-  with assistant audio while speaking. Respects `prefers-reduced-motion`.
-- Voice-editable share page — finalize navigates to `/trip/[id]` where
-  the orb persists as a FAB and edits debounce-save back to the share URL.
-- End-session button — visible whenever the connection is active so you
-  don't burn API credits idle.
-- Five destination catalogs: Goa, Bali, Tokyo, Lisbon, Dubai — areas,
-  stays, activities, food, transit matrix, day templates, seasonal warnings
-- Live canvas: trip header, day strip, day list, transcript stream,
-  image-rich activity / stay cards, finalize + share view at `/trip/[id]`
-  with image parity to the canvas
-- Audio ducking on planning turns (assistant audio mutes until first
-  store mutation lands, with a 1.5s safety release)
-- One-shot auto-reconnect on data-channel / ICE failure with last-8-turn
-  replay; falls back to "tap to reconnect" after the second drop
-- Mock calendar fixture via `NEXT_PUBLIC_CALENDAR_MODE=mock`; live
-  Google Calendar via `NEXT_PUBLIC_CALENDAR_MODE=browser_use` against
-  the local `services/calendar-bridge` Python service
-- Trip export: print-friendly `/trip/[id]/print` route (Cmd+P → Save
-  as PDF) and `.ics` download at `/api/export/[id]/ics`. Voice tools
-  `open_print` and `export_ics` trigger the same flows hands-free.
+- `gpt-realtime-2.1` over WebRTC (transcription: `gpt-transcribe`), `semantic_vad`, ephemeral client-secret minting;
+  typed messages share the same session (text-only if no mic)
+- Concierge tools: `update_visit` (session memory: party, location, walking /
+  indoor limits, dislikes, time window), `plan_my_day`, `replace_stop`,
+  `find_nearby`, `show_place`, `add_place_to_plan`
+- Multi-day trip tools: `set_trip_basics`, `set_day_modes`, `add_fixed_event`,
+  `set_stay`, `add_activity`, `move_activity`, `remove_activity`,
+  `plan_day`, `propose_full_itinerary`, `validate_itinerary`,
+  `finalize_itinerary`, `search_flights` (mock, into DXB), `suggest_stays`,
+  `suggest_nearby`, `get_transport_info`, `open_print`, `export_ics`
+- Dubai catalog with coordinates, family fit (minimum age, walking level,
+  indoor/outdoor), opening hours and official links, plus day trips to Abu
+  Dhabi, Sharjah, Hatta and Ras Al Khaimah. Travel times come from a Dubai
+  taxi model over real coordinates.
+- Share page `/trip/[id]`, print view and `.ics` export for finalized trips
 
 ## What's not wired yet
 
@@ -110,7 +87,7 @@ drifted. Check `lib/realtime/config.ts`; both `output_modalities` and
 `audio.output.voice` are placement-sensitive.
 
 **"upstream_error 400 model"** — Your account may not be enabled for
-`gpt-realtime`. Try `gpt-4o-realtime-preview-2024-12-17` in
+`gpt-realtime-2.1`. Fall back to `gpt-realtime-2` or `gpt-realtime` in
 `lib/realtime/config.ts` as a fallback.
 
 **Latency > 3s on first reply** — The Next.js route is cold. Hit it once
@@ -129,7 +106,8 @@ before each WebRTC handshake. Other defenses:
 
 `.env.local` is gitignored. Rotate the key after public demos.
 
-## Built for
+## Built by
 
-[Open Destinations](https://opendestinations.com) — *we do the tech, you
-do the travel.*
+Zapcom. Illustrative prototype — not affiliated with or
+endorsed by any government tourism body. Recommendations come from a small
+curated catalog; there is no live availability, booking or payment.

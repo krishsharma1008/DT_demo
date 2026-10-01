@@ -1,7 +1,7 @@
 import type { RedactedEvent } from "./types";
 
 /**
- * Deterministic mock calendar matching the canonical Goa demo (PLAN §11).
+ * Deterministic mock calendar for the Dubai demo.
  * Lets the demo prove calendar-awareness without an OAuth consent screen.
  *
  * Activate with NEXT_PUBLIC_CALENDAR_MODE=mock or via the source=mock query
@@ -9,11 +9,11 @@ import type { RedactedEvent } from "./types";
  */
 export const MOCK_EVENTS: RedactedEvent[] = [
   {
-    id: "mock_panjim_meeting",
-    title: "Meeting with Anand",
+    id: "mock_difc_meeting",
+    title: "Client meeting",
     start_local: "2026-05-16T15:00",
     end_local: "2026-05-16T16:00",
-    location: "Panjim, Goa",
+    location: "DIFC, Dubai",
     has_video: false,
   },
   {

@@ -29,8 +29,8 @@ describe("itinerary.formatItinerarySnapshot", () => {
   test("includes destination, dates, traveler count, vibe", () => {
     const snap = formatItinerarySnapshot({
       trip: {
-        destination_id: "goa",
-        destination_name: "Goa",
+        destination_id: "dubai",
+        destination_name: "Dubai",
         start_date: "2026-05-15",
         end_date: "2026-05-19",
         travelers: 2,
@@ -49,7 +49,7 @@ describe("itinerary.formatItinerarySnapshot", () => {
       preferences: {},
       status: "draft",
     });
-    assert.ok(snap?.includes("5-day Goa") || snap?.includes("1-day Goa"));
+    assert.ok(snap?.includes("5-day Dubai") || snap?.includes("1-day Dubai"));
     assert.ok(snap?.includes("2026-05-15"));
     assert.ok(snap?.includes("2026-05-19"));
     assert.ok(snap?.includes("2 traveler"));
@@ -59,8 +59,8 @@ describe("itinerary.formatItinerarySnapshot", () => {
   test("renders fixed events and activities per day", () => {
     const snap = formatItinerarySnapshot({
       trip: {
-        destination_id: "goa",
-        destination_name: "Goa",
+        destination_id: "dubai",
+        destination_name: "Dubai",
         start_date: "2026-05-15",
         end_date: "2026-05-15",
         travelers: 1,
@@ -77,16 +77,16 @@ describe("itinerary.formatItinerarySnapshot", () => {
               type: "meeting",
               start_time: "15:00",
               duration_min: 60,
-              location: "Panjim",
+              location: "DIFC",
             },
           ],
           activities: [
             {
               id: "a0",
-              title: "Anjuna cafe",
+              title: "Marina cafe",
               start_time: "10:00",
               duration_min: 120,
-              area_id: "anjuna",
+              area_id: "marina",
             },
           ],
         },
@@ -97,15 +97,15 @@ describe("itinerary.formatItinerarySnapshot", () => {
     });
     assert.ok(snap?.includes("Meeting with Anand"));
     assert.ok(snap?.includes("15:00"));
-    assert.ok(snap?.includes("Anjuna cafe"));
+    assert.ok(snap?.includes("Marina cafe"));
     assert.ok(snap?.includes("10:00"));
   });
 
   test("renders preferences block when set", () => {
     const snap = formatItinerarySnapshot({
       trip: {
-        destination_id: "goa",
-        destination_name: "Goa",
+        destination_id: "dubai",
+        destination_name: "Dubai",
         start_date: "2026-05-15",
         end_date: "2026-05-15",
         travelers: 1,
@@ -129,8 +129,8 @@ describe("itinerary helpers", () => {
   test("setTripBasics preserves ISO dates when building days", () => {
     useItineraryStore.getState().reset();
     useItineraryStore.getState().setTripBasics({
-      destination_id: "goa",
-      destination_name: "Goa",
+      destination_id: "dubai",
+      destination_name: "Dubai",
       start_date: "2026-04-30",
       end_date: "2026-05-03",
       travelers: 1,

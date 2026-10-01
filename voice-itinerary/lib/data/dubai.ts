@@ -871,14 +871,24 @@ const canonical_day_templates: DayTemplate[] = [
     ],
   },
   {
+    id: "tpl_dubai_work_cafe",
+    title: "Dubai work-from-café day",
+    mood: "work",
+    slots: [
+      { time: "09:30", food_id: "food_coffee_brunch_jbr" },
+      { time: "13:30", activity_id: "act_cafe_bateel" },
+      { time: "18:30", activity_id: "act_marina_walk" },
+    ],
+  },
+  {
     id: "tpl_dubai_indoor_summer",
     title: "Dubai indoor (summer pivot)",
     mood: "chill",
     slots: [
       { time: "10:00", activity_id: "act_dubai_mall_aquarium" },
-      { time: "12:30", food_id: "food_friday_brunch_bubbalicious", notes: "Friday only — sub Pierchic otherwise" },
-      { time: "16:00", activity_id: "act_difc_art" },
-      { time: "19:00", activity_id: "act_view_at_palm" },
+      { time: "12:30", food_id: "food_friday_brunch_bubbalicious", notes: "Saturday brunch — sub Pierchic otherwise" },
+      { time: "17:00", activity_id: "act_difc_art" },
+      { time: "19:15", activity_id: "act_view_at_palm" },
     ],
   },
 ];

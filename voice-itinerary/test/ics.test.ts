@@ -4,8 +4,8 @@ import { buildIcs, suggestedFilename, type IcsPayload } from "@/lib/share/ics";
 
 const SAMPLE: IcsPayload = {
   trip: {
-    destination_id: "goa",
-    destination_name: "Goa",
+    destination_id: "dubai",
+    destination_name: "Dubai",
     start_date: "2026-05-15",
     end_date: "2026-05-19",
   },
@@ -29,7 +29,7 @@ const SAMPLE: IcsPayload = {
           title: "Coworking, cafe",
           start_time: "11:00",
           duration_min: 180,
-          area_id: "anjuna",
+          area_id: "marina",
         },
       ],
     },
@@ -43,7 +43,7 @@ const SAMPLE: IcsPayload = {
           type: "meeting",
           start_time: "15:00",
           duration_min: 60,
-          location: "Panjim, Goa",
+          location: "DIFC, Dubai",
         },
       ],
       activities: [],
@@ -68,8 +68,8 @@ describe("ics.buildIcs", () => {
   test("escapes commas in LOCATION per RFC 5545", () => {
     const out = buildIcs("smoke-1", SAMPLE);
     assert.ok(
-      out.includes("LOCATION:Panjim\\, Goa"),
-      "comma in 'Panjim, Goa' is backslash-escaped",
+      out.includes("LOCATION:DIFC\\, Dubai"),
+      "comma in 'DIFC, Dubai' is backslash-escaped",
     );
   });
 
@@ -84,20 +84,20 @@ describe("ics.buildIcs", () => {
   test("uses TZID for known destinations", () => {
     const out = buildIcs("smoke-1", SAMPLE);
     assert.ok(
-      out.includes("X-WR-TIMEZONE:Asia/Kolkata"),
-      "Goa → Asia/Kolkata",
+      out.includes("X-WR-TIMEZONE:Asia/Dubai"),
+      "Dubai → Asia/Dubai",
     );
     assert.ok(
-      out.includes("DTSTART;TZID=Asia/Kolkata:"),
+      out.includes("DTSTART;TZID=Asia/Dubai:"),
       "events stamp with TZID",
     );
   });
 
   test("UIDs are stable per (share, day, kind, id)", () => {
     const out = buildIcs("smoke-1", SAMPLE);
-    assert.ok(out.includes("UID:smoke-1:0:fx:f0@tineri.voice"));
-    assert.ok(out.includes("UID:smoke-1:1:fx:f1@tineri.voice"));
-    assert.ok(out.includes("UID:smoke-1:0:act:a1@tineri.voice"));
+    assert.ok(out.includes("UID:smoke-1:0:fx:f0@marhaba.zapcom"));
+    assert.ok(out.includes("UID:smoke-1:1:fx:f1@marhaba.zapcom"));
+    assert.ok(out.includes("UID:smoke-1:0:act:a1@marhaba.zapcom"));
   });
 });
 
@@ -105,7 +105,7 @@ describe("ics.suggestedFilename", () => {
   test("includes destination + dates", () => {
     assert.equal(
       suggestedFilename(SAMPLE),
-      "goa-2026-05-15-to-2026-05-19.ics",
+      "dubai-2026-05-15-to-2026-05-19.ics",
     );
   });
 

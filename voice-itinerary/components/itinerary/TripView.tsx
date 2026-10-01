@@ -29,6 +29,8 @@ type Activity = {
   area_id?: string;
   notes?: string;
   catalog_id?: string;
+  image?: string;
+  reason?: string;
 };
 
 type Day = {
@@ -110,10 +112,10 @@ export function TripView({
         />
         <div className="relative px-6 py-7 sm:px-8">
           <p className="mb-1 text-[10px] uppercase tracking-[0.22em] text-white/80">
-            {printMode ? "tineri voice itinerary" : "finalized trip"}
+            {printMode ? "Marhaba · Dubai itinerary" : "Your saved plan"}
           </p>
           <h1
-            className="text-4xl font-semibold tracking-tight text-white drop-shadow"
+            className="font-display text-5xl font-semibold tracking-tight text-white drop-shadow"
             style={{ textShadow: "0 1px 6px rgba(14,63,92,0.25)" }}
           >
             {trip.destination_name ?? "Untitled"}
@@ -137,7 +139,7 @@ export function TripView({
       </header>
 
       {stay?.area_id && (
-        <section className="flex items-center gap-4 rounded-[var(--radius-card)] border border-[color:var(--color-cream-200)] bg-white/80 p-4 shadow-[var(--shadow-soft)]">
+        <section className="flex items-center gap-4 rounded-[var(--radius-card)] border border-[color:var(--color-cream-200)] bg-card p-4 shadow-[var(--shadow-soft)]">
           <ActivityImage
             destinationId={trip.destination_id}
             seed={stay.property_id ?? stay.area_id}
@@ -187,10 +189,10 @@ export function TripView({
         {days.map((day) => (
           <section
             key={day.index}
-            className="print-day rounded-[var(--radius-card)] border border-[color:var(--color-cream-200)] bg-white/80 p-5 shadow-[var(--shadow-soft)]"
+            className="print-day rounded-[var(--radius-card)] border border-[color:var(--color-cream-200)] bg-card p-5 shadow-[var(--shadow-soft)]"
           >
             <div className="mb-3 flex items-baseline justify-between">
-              <h2 className="text-base font-semibold tracking-tight text-[color:var(--color-navy-900)]">
+              <h2 className="font-display text-2xl font-semibold tracking-tight text-ink">
                 {dayTitle(day.date, day.index)}
               </h2>
               <span className="text-[10px] uppercase tracking-[0.2em] text-[color:var(--color-ink-400)]">
@@ -208,9 +210,9 @@ export function TripView({
               {day.fixed_events.map((ev) => (
                 <li
                   key={ev.id}
-                  className="flex items-center gap-3 rounded-xl bg-[color:var(--color-navy-900)] px-3 py-3 text-sm text-white"
+                  className="flex items-center gap-3 rounded-xl border border-line bg-sunk px-3 py-3 text-sm text-ink"
                 >
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-white/10">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-card text-gold-ink">
                     <Pin className="h-4 w-4" />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col">
@@ -249,10 +251,11 @@ export function TripView({
                   >
                     <ActivityImage
                       destinationId={trip.destination_id}
-                      seed={a.id}
+                      seed={a.catalog_id ?? a.id}
                       kind={catalog?.kind ?? "activity"}
                       tags={catalog?.tags}
-                      size="sm"
+                      image={a.image ?? catalog?.image}
+                      size="md"
                     />
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="flex items-baseline gap-2">
@@ -266,10 +269,10 @@ export function TripView({
                           </span>
                         )}
                       </span>
-                      <span className="truncate text-sm">{a.title}</span>
-                      {a.notes && (
-                        <span className="truncate text-xs italic text-[color:var(--color-ink-400)]">
-                          {a.notes}
+                      <span className="font-display text-lg font-semibold leading-tight">{a.title}</span>
+                      {(a.reason ?? a.notes) && (
+                        <span className="text-xs leading-snug text-[color:var(--color-ink-600)]">
+                          {a.reason ?? a.notes}
                         </span>
                       )}
                     </span>
@@ -285,7 +288,7 @@ export function TripView({
       </div>
 
       <p className="text-center text-[10px] uppercase tracking-[0.2em] text-[color:var(--color-ink-400)]">
-        we do the tech · you do the travel
+        Marhaba — Dubai AI Concierge by Zapcom · illustrative prototype
       </p>
     </article>
   );

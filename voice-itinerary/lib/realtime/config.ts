@@ -10,7 +10,7 @@
  * sends them via session.update once the data channel opens, so we can refresh
  * them mid-conversation (e.g. when Google Calendar context arrives).
  */
-export const REALTIME_MODEL = "gpt-realtime";
+export const REALTIME_MODEL = "gpt-realtime-2.1";
 export const REALTIME_VOICE = "marin";
 
 export const REALTIME_SESSION_CONFIG = {
@@ -19,7 +19,7 @@ export const REALTIME_SESSION_CONFIG = {
   output_modalities: ["audio"] as const,
   audio: {
     input: {
-      transcription: { model: "whisper-1" },
+      transcription: { model: "gpt-transcribe" },
       turn_detection: {
         type: "semantic_vad" as const,
         eagerness: "high" as const,

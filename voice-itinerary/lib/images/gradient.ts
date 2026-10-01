@@ -9,10 +9,11 @@
 
 import { getDestination } from "@/lib/data";
 
+// Marhaba palette: night navy → brass → desert sand.
 const FALLBACK = {
-  primary: "#0E3F5C",
-  secondary: "#F08A2C",
-  tertiary: "#FBF7EE",
+  primary: "#13233A",
+  secondary: "#C49A4A",
+  tertiary: "#E8D9BC",
 };
 
 function hashSeed(seed: string): number {
@@ -31,9 +32,9 @@ function paletteFor(destinationId: string | null | undefined) {
   // The primary navy stays constant for brand cohesion; accent shifts per
   // destination. Tertiary is the cream wash.
   return {
-    primary: "#0E3F5C",
+    primary: FALLBACK.primary,
     secondary: accent,
-    tertiary: "#F4ECDC",
+    tertiary: FALLBACK.tertiary,
   };
 }
 

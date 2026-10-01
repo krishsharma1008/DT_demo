@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 declare global {
   // eslint-disable-next-line no-var
-  var __tineriAudioCtx: AudioContext | undefined;
+  var __marhabaAudioCtx: AudioContext | undefined;
 }
 
 function getAudioContext(): AudioContext | null {
@@ -14,10 +14,10 @@ function getAudioContext(): AudioContext | null {
   };
   const Ctor = W.AudioContext ?? W.webkitAudioContext;
   if (!Ctor) return null;
-  if (!globalThis.__tineriAudioCtx) {
-    globalThis.__tineriAudioCtx = new Ctor();
+  if (!globalThis.__marhabaAudioCtx) {
+    globalThis.__marhabaAudioCtx = new Ctor();
   }
-  return globalThis.__tineriAudioCtx;
+  return globalThis.__marhabaAudioCtx;
 }
 
 /**
@@ -25,7 +25,7 @@ function getAudioContext(): AudioContext | null {
  * ring scales off this so it feels alive while listening + speaking.
  *
  * Implementation notes:
- * - One shared AudioContext (`globalThis.__tineriAudioCtx`) so React Strict
+ * - One shared AudioContext (`globalThis.__marhabaAudioCtx`) so React Strict
  *   Mode doesn't multiply contexts.
  * - The context starts in "suspended" state on Safari until a user gesture;
  *   the orb's tap satisfies that. We resume() lazily.

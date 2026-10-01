@@ -6,8 +6,9 @@ describe("prompt.buildSystemPrompt", () => {
   test("contains all expected sections", () => {
     const prompt = buildSystemPrompt({ current_date: "2026-04-26" });
     const required = [
-      "You are Tineri",
-      "Language. Detect",
+      "You are Marhaba",
+      "In-Dubai concierge",
+      "Language. Speak English",
       "RULE — show, then tell",
       "Information hierarchy",
       "Day-by-day planning",
@@ -17,7 +18,6 @@ describe("prompt.buildSystemPrompt", () => {
       "Flights. When the user mentions",
       "Hospitality (stays, nearby, transport)",
       "Recovery rules",
-      "Calendar awareness",
       "Out of scope",
       "Voice quirks",
     ];
@@ -31,7 +31,7 @@ describe("prompt.buildSystemPrompt", () => {
 
   test("injects current_date into the prompt", () => {
     const prompt = buildSystemPrompt({ current_date: "2026-04-26" });
-    assert.ok(prompt.includes("Current date: 2026-04-26"));
+    assert.ok(prompt.includes("Current date in Dubai: 2026-04-26"));
   });
 
   test("requires guided personalization before drafting", () => {
@@ -80,40 +80,51 @@ describe("prompt.buildSystemPrompt", () => {
           has_video: true,
         },
         {
-          title: "Meeting with Anand",
+          title: "Client meeting",
           start_local: "2026-05-16T15:00",
           end_local: "2026-05-16T16:00",
-          location: "Panjim, Goa",
+          location: "DIFC, Dubai",
           has_video: false,
         },
       ],
     });
     assert.ok(prompt.includes("Existing commitments"));
+    assert.ok(prompt.includes("Calendar awareness"), "calendar rules only when commitments exist");
     assert.ok(prompt.includes("Standup"));
-    assert.ok(prompt.includes("Panjim, Goa"));
+    assert.ok(prompt.includes("DIFC, Dubai"));
     assert.ok(prompt.includes("(video)"));
   });
 
   test("omits commitments block when none provided", () => {
     const prompt = buildSystemPrompt({ current_date: "2026-04-26" });
     assert.ok(!prompt.includes("Existing commitments"));
+    assert.ok(!prompt.includes("Calendar awareness"));
   });
 
   test("renders itinerary_snapshot block when continuity is needed", () => {
     const snapshot =
-      "Trip: 5-day Goa, 2026-05-15→2026-05-19, 1 traveler, chill vibe.\nDay 1 2026-05-15 (work): open";
+      "Trip: 5-day Dubai, 2026-05-15→2026-05-19, 1 traveler, chill vibe.\nDay 1 2026-05-15 (work): open";
     const prompt = buildSystemPrompt({
       current_date: "2026-04-26",
       itinerary_snapshot: snapshot,
     });
-    assert.ok(prompt.includes("CURRENT TRIP STATE"));
+    assert.ok(prompt.includes("CURRENT STATE"));
     assert.ok(prompt.includes("do NOT start over"));
     assert.ok(prompt.includes("do NOT re-greet"));
-    assert.ok(prompt.includes("5-day Goa"));
+    assert.ok(prompt.includes("5-day Dubai"));
+  });
+
+  test("names all four concierge use-case tools", () => {
+    const prompt = buildSystemPrompt({ current_date: "2026-04-26", current_time: "10:15" });
+    for (const tool of ["update_visit", "plan_my_day", "replace_stop", "find_nearby", "show_place"]) {
+      assert.ok(prompt.includes(tool), `prompt mentions ${tool}`);
+    }
+    assert.ok(prompt.includes("local time 10:15"));
+    assert.ok(!/tineri|goa|panjim/i.test(prompt), "no legacy branding or cities");
   });
 
   test("omits snapshot block when none provided (fresh session)", () => {
     const prompt = buildSystemPrompt({ current_date: "2026-04-26" });
-    assert.ok(!prompt.includes("CURRENT TRIP STATE"));
+    assert.ok(!prompt.includes("CURRENT STATE"));
   });
 });

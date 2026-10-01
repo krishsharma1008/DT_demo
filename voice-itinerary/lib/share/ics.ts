@@ -51,10 +51,6 @@ export type IcsPayload = {
  * time (no TZID) which most calendar apps interpret as the user's local zone.
  */
 const TZ_BY_DESTINATION: Record<string, string> = {
-  goa: "Asia/Kolkata",
-  bali: "Asia/Makassar",
-  tokyo: "Asia/Tokyo",
-  lisbon: "Europe/Lisbon",
   dubai: "Asia/Dubai",
 };
 
@@ -157,7 +153,7 @@ export function buildIcs(share_id: string, payload: IcsPayload): string {
     for (const ev of day.fixed_events) {
       blocks.push(
         vevent({
-          uid: `${share_id}:${day.index}:fx:${ev.id}@tineri.voice`,
+          uid: `${share_id}:${day.index}:fx:${ev.id}@marhaba.zapcom`,
           dtstamp,
           date: day.date,
           start_time: ev.start_time,
@@ -172,7 +168,7 @@ export function buildIcs(share_id: string, payload: IcsPayload): string {
     for (const a of day.activities) {
       blocks.push(
         vevent({
-          uid: `${share_id}:${day.index}:act:${a.id}@tineri.voice`,
+          uid: `${share_id}:${day.index}:act:${a.id}@marhaba.zapcom`,
           dtstamp,
           date: day.date,
           start_time: a.start_time,
@@ -189,7 +185,7 @@ export function buildIcs(share_id: string, payload: IcsPayload): string {
   const calLines = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Tineri Voice//Open Destinations//EN",
+    "PRODID:-//Zapcom//Marhaba Dubai Concierge//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${escapeText(tripName)}`,

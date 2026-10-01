@@ -349,8 +349,10 @@ function scoreTemplate(args: {
   let score = 0;
   const moodIdx = preferred_moods.indexOf(template.mood);
   if (preferred_moods.length > 0) {
-    if (moodIdx === -1) score -= 5;
-    else score += 10 - moodIdx * 2;
+    // Mood is the primary signal: an exact match must beat a longer template
+    // of a secondary mood (open-slot credit below scales with slot count).
+    if (moodIdx === -1) score -= 10;
+    else score += 24 - moodIdx * 8;
   }
 
   // Reward templates whose slots are mostly open today.

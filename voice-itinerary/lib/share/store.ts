@@ -22,25 +22,25 @@ export type SharedTrip = {
 
 declare global {
   // eslint-disable-next-line no-var
-  var __tineriShareStore: Map<string, SharedTrip> | undefined;
+  var __marhabaShareStore: Map<string, SharedTrip> | undefined;
   // eslint-disable-next-line no-var
-  var __tineriShareStoreLoadedFrom: string | undefined;
+  var __marhabaShareStoreLoadedFrom: string | undefined;
 }
 
 export const shareStore: Map<string, SharedTrip> =
-  globalThis.__tineriShareStore ??
-  (globalThis.__tineriShareStore = new Map<string, SharedTrip>());
+  globalThis.__marhabaShareStore ??
+  (globalThis.__marhabaShareStore = new Map<string, SharedTrip>());
 
 function storePath(): string {
   return (
-    process.env.TINERI_SHARE_STORE_PATH ??
-    join(process.cwd(), ".next", "tineri-share-store.json")
+    process.env.MARHABA_SHARE_STORE_PATH ??
+    join(process.cwd(), ".next", "marhaba-share-store.json")
   );
 }
 
 function loadFromDisk(): void {
   const path = storePath();
-  if (globalThis.__tineriShareStoreLoadedFrom === path) return;
+  if (globalThis.__marhabaShareStoreLoadedFrom === path) return;
 
   shareStore.clear();
   if (existsSync(path)) {
@@ -57,7 +57,7 @@ function loadFromDisk(): void {
       console.warn("[share-store] ignoring unreadable store", err);
     }
   }
-  globalThis.__tineriShareStoreLoadedFrom = path;
+  globalThis.__marhabaShareStoreLoadedFrom = path;
 }
 
 function persistToDisk(): void {

@@ -8,35 +8,35 @@ import {
   listDestinations,
   destinationContextForPrompt,
 } from "@/lib/data";
-import { goa } from "@/lib/data/goa";
+import { dubai } from "@/lib/data";
 
 describe("data.rankStays", () => {
   test("returns at most 3 picks", () => {
-    const r = rankStays(goa, { vibe: "chill", budget_tier: "comfort" });
+    const r = rankStays(dubai, { vibe: "family", budget_tier: "comfort" });
     assert.ok(r.length <= 3);
-    assert.ok(r.length > 0, "Goa has chill comfort stays");
+    assert.ok(r.length > 0, "Dubai has comfort stays");
   });
 
   test("each pick carries a rationale", () => {
-    const r = rankStays(goa, { vibe: "chill" });
+    const r = rankStays(dubai, { vibe: "chill" });
     for (const p of r) assert.ok(p.rationale.length > 0);
   });
 
   test("filters by area_id", () => {
-    const r = rankStays(goa, { area_id: "anjuna" });
-    for (const p of r) assert.equal(p.stay.area_id, "anjuna");
+    const r = rankStays(dubai, { area_id: "marina" });
+    for (const p of r) assert.equal(p.stay.area_id, "marina");
   });
 
   test("work_friendly filter respected", () => {
-    const r = rankStays(goa, { work_friendly: true });
+    const r = rankStays(dubai, { work_friendly: true });
     for (const p of r) assert.equal(p.stay.work_friendly, true);
   });
 });
 
 describe("data.nearbyItems", () => {
   test("returns items within max_minutes of base area", () => {
-    const r = nearbyItems(goa, {
-      base_area_id: "anjuna",
+    const r = nearbyItems(dubai, {
+      base_area_id: "marina",
       max_minutes: 25,
       max: 4,
     });
@@ -50,8 +50,8 @@ describe("data.nearbyItems", () => {
   });
 
   test("respects max parameter", () => {
-    const r = nearbyItems(goa, {
-      base_area_id: "anjuna",
+    const r = nearbyItems(dubai, {
+      base_area_id: "marina",
       max_minutes: 90,
       max: 3,
     });
@@ -59,8 +59,8 @@ describe("data.nearbyItems", () => {
   });
 
   test("sorted by transit time ascending", () => {
-    const r = nearbyItems(goa, {
-      base_area_id: "panjim",
+    const r = nearbyItems(dubai, {
+      base_area_id: "old_dubai",
       max_minutes: 60,
       max: 6,
     });
@@ -71,9 +71,9 @@ describe("data.nearbyItems", () => {
 });
 
 describe("data.getTransportNotes", () => {
-  test("returns airport_transfer + intracity copy for Goa", () => {
-    const notes = getTransportNotes(goa);
-    assert.ok(notes.summary.includes("GOI"));
+  test("returns airport_transfer + intracity copy for Dubai", () => {
+    const notes = getTransportNotes(dubai);
+    assert.ok(notes.summary.includes("DXB"));
     assert.ok(notes.airport_transfer.length > 0);
     assert.ok(notes.intracity.length > 0);
   });
@@ -81,7 +81,7 @@ describe("data.getTransportNotes", () => {
 
 describe("data.queryCatalog", () => {
   test("returns activities, stays, food when no filter", () => {
-    const r = queryCatalog({ destination: "goa" });
+    const r = queryCatalog({ destination: "dubai" });
     assert.equal(r.ok, true);
     if (!r.ok) return;
     assert.ok(r.activities.length > 0);
@@ -91,7 +91,7 @@ describe("data.queryCatalog", () => {
 
   test("filter by type narrows result", () => {
     const r = queryCatalog({
-      destination: "goa",
+      destination: "dubai",
       filter: { type: "stay" },
     });
     assert.equal(r.ok, true);
@@ -108,18 +108,24 @@ describe("data.queryCatalog", () => {
 });
 
 describe("data.listDestinations", () => {
-  test("registers all 5 destinations", () => {
-    const list = listDestinations();
-    const ids = list.map((d) => d.id).sort();
-    assert.deepEqual(ids, ["bali", "dubai", "goa", "lisbon", "tokyo"]);
+  test("Dubai is the only destination", () => {
+    const ids = listDestinations().map((d) => d.id);
+    assert.deepEqual(ids, ["dubai"]);
+  });
+
+  test("UAE place names resolve to the Dubai catalog", () => {
+    for (const q of ["Dubai", "abu dhabi", "Sharjah"]) {
+      const r = queryCatalog({ destination: q });
+      assert.equal(r.ok, true, q);
+    }
   });
 });
 
 describe("data.destinationContextForPrompt", () => {
-  test("Goa context is non-empty and concise", () => {
-    const ctx = destinationContextForPrompt("goa");
+  test("Dubai context is non-empty and concise", () => {
+    const ctx = destinationContextForPrompt("dubai");
     assert.ok(ctx);
     assert.ok(ctx!.length < 800, "context should be ≤180 token-equivalent");
-    assert.ok(ctx!.includes("Goa"));
+    assert.ok(ctx!.includes("Dubai"));
   });
 });

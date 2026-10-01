@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 32" role="img" aria-label="Zapcom">
+  <!-- PLACEHOLDER wordmark. Replace with the official Zapcom asset; the app
+       renders this file through components/brand/ZapcomLogo.tsx. -->
+  <title>Zapcom</title>
+  <path d="M4 7h14L6 25h14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="28" y="23" fill="currentColor" font-family="Manrope, Inter, 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="-0.4">zapcom</text>
+</svg>

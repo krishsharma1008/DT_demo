@@ -1,29 +1,44 @@
-import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Caveat } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Cormorant_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
 import { TopNav } from "@/components/brand/TopNav";
 import { VoiceShell } from "@/components/voice/VoiceShell";
 
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
-const caveat = Caveat({
-  variable: "--font-caveat",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
-  weight: ["500", "700"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Tineri Voice — Plan a trip by talking",
+  title: "Marhaba — Dubai AI Concierge",
   description:
-    "Tineri Voice by Open Destinations. Press the orb, say where you're going, and watch your itinerary build itself.",
+    "Marhaba, a Dubai AI concierge by Zapcom. Speak or type to plan your day in Dubai, change it on the fly, and find what's nearby. Illustrative prototype.",
+  applicationName: "Marhaba",
   icons: { icon: "/favicon.ico" },
 };
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f9f4ea" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a1220" },
+  ],
+};
+
+// Applies a stored theme choice before first paint (no flash).
+const THEME_BOOT = `try{var t=localStorage.getItem("marhaba-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default function RootLayout({
   children,
@@ -31,17 +46,21 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${jakarta.variable} ${caveat.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${cormorant.variable} ${manrope.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col text-[color:var(--color-ink-900)]">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT }} />
+      </head>
+      <body className="flex min-h-full flex-col text-ink">
+        <div
+          aria-hidden
+          className="mashrabiya pointer-events-none fixed inset-0 -z-10 print-hide"
+        />
         <VoiceShell>
           <TopNav />
           <main className="flex flex-1 flex-col">{children}</main>
-          <span
-            aria-live="polite"
-            id="trip-announcer"
-            className="sr-only"
-          />
+          <span aria-live="polite" id="trip-announcer" className="sr-only" />
         </VoiceShell>
       </body>
     </html>

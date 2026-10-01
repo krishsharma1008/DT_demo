@@ -1,5 +1,5 @@
 {
-  "name": "voice-itinerary",
+  "name": "marhaba-dubai-concierge",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,7 +10,8 @@
     "test": "tsx --test test/*.test.ts",
     "calendar:install": "cd ../services/calendar-bridge && uv sync && uv run playwright install chromium",
     "calendar:setup": "cd ../services/calendar-bridge && uv run python -m scripts.setup",
-    "calendar:bridge": "cd ../services/calendar-bridge && uv run uvicorn bridge.main:app --host 127.0.0.1 --port 8765"
+    "calendar:bridge": "cd ../services/calendar-bridge && uv run uvicorn bridge.main:app --host 127.0.0.1 --port 8765",
+    "eval": "tsx --tsconfig tsconfig.json scripts/eval-concierge.ts"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",

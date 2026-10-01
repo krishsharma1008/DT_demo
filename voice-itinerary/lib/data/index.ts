@@ -1,18 +1,79 @@
-import type { ActivityDef, DestinationDef } from "./types";
-import { goa } from "./goa";
-import { bali } from "./bali";
-import { tokyo } from "./tokyo";
-import { lisbon } from "./lisbon";
-import { dubai } from "./dubai";
+import type { ActivityDef, AreaDef, DestinationDef } from "./types";
+import { dubai as dubaiBase } from "./dubai";
+import {
+  areaCoords,
+  enrichment,
+  extraActivities,
+  extraAreas,
+  extraDayTemplates,
+  extraFood,
+} from "./dubai-extra";
+import { travelMinutes } from "@/lib/concierge/geo";
 
 /**
- * Destination registry. The realtime model queries via get_destination_context
- * / query_catalog. Goa is the hero demo destination; the other four cover
- * the breadth of vibes (work-tropical, dense-urban, walkable-pastel, climate-
- * controlled-luxury).
+ * Destination registry. Dubai is the only destination: the hand-written base
+ * catalog (dubai.ts) merged with the researched concierge extras
+ * (dubai-extra.ts — coords, family fit, day trips around the UAE).
  */
 
-const all: DestinationDef[] = [goa, bali, tokyo, lisbon, dubai];
+function buildDubai(): DestinationDef {
+  const enrich = (a: ActivityDef): ActivityDef => ({
+    emirate: "dubai",
+    ...a,
+    ...(enrichment[a.id] ?? {}),
+  });
+  const areas: AreaDef[] = [
+    ...dubaiBase.areas.map((a) => ({ ...a, coords: a.coords ?? areaCoords[a.id] })),
+    ...extraAreas.filter((x) => !dubaiBase.areas.some((a) => a.id === x.id)),
+  ];
+  const seen = new Set<string>();
+  const uniq = (xs: ActivityDef[]) =>
+    xs.filter((x) => (seen.has(x.id) ? false : (seen.add(x.id), true)));
+  const activities = uniq([...dubaiBase.activities.map(enrich), ...extraActivities.map(enrich)]);
+  const food = uniq([...dubaiBase.food.map(enrich), ...extraFood.map(enrich)]);
+
+  // Hand-tuned matrix rows win; every other pair is derived from centroids.
+  const matrix: Record<string, Record<string, number>> = {};
+  for (const a of areas) {
+    matrix[a.id] = {};
+    for (const b of areas) {
+      const hand = dubaiBase.transit_time_matrix[a.id]?.[b.id];
+      matrix[a.id]![b.id] =
+        hand ?? (a.id === b.id ? 0 : a.coords && b.coords ? travelMinutes(a.coords, b.coords) : 60);
+    }
+  }
+
+  const regions: Record<string, string[]> = {
+    west: ["marina", "jbr", "palm", "al_barsha"],
+    central: ["downtown", "old_dubai", "jumeirah", "creek_harbour", "al_quoz"],
+  };
+  for (const a of areas) {
+    if (!Object.values(regions).some((ids) => ids.includes(a.id))) regions[a.id] = [a.id];
+  }
+
+  return {
+    ...dubaiBase,
+    areas,
+    activities,
+    food,
+    transit_time_matrix: matrix,
+    canonical_day_templates: [...dubaiBase.canonical_day_templates, ...extraDayTemplates],
+    regions,
+  };
+}
+
+export const dubai: DestinationDef = buildDubai();
+
+const all: DestinationDef[] = [dubai];
+
+/** Every visitable place (activities + food) in the catalog. */
+export function allPlaces(): ActivityDef[] {
+  return [...dubai.activities, ...dubai.food];
+}
+
+export function findPlace(id: string): ActivityDef | null {
+  return allPlaces().find((p) => p.id === id) ?? null;
+}
 
 export function listDestinations(): {
   id: string;
@@ -32,13 +93,17 @@ export function getDestination(id: string): DestinationDef | null {
   return all.find((d) => d.id === id) ?? null;
 }
 
+// Day trips (Abu Dhabi, Sharjah, RAK…) live inside the Dubai catalog, so any
+// UAE place name resolves to it rather than failing with "not found".
+const UAE_ALIASES = ["dubai", "dxb", "uae", "emirates", "abu dhabi", "sharjah", "ras al khaimah", "rak", "hatta", "ajman", "fujairah"];
+
 export function findDestinationByText(text: string): DestinationDef | null {
-  const t = text.toLowerCase();
-  return (
-    all.find(
-      (d) => d.id === t || d.name.toLowerCase() === t || t.includes(d.id),
-    ) ?? null
+  const t = text.toLowerCase().trim();
+  const direct = all.find(
+    (d) => d.id === t || d.name.toLowerCase() === t || t.includes(d.id),
   );
+  if (direct) return direct;
+  return UAE_ALIASES.some((a) => t.includes(a)) ? dubai : null;
 }
 
 export type CatalogQuery = {
@@ -224,12 +289,12 @@ export function destinationContextForPrompt(id: string): string | null {
   const d = getDestination(id);
   if (!d) return null;
   const areas = d.areas
-    .map((a) => `${a.id}=${a.name} (${a.vibe_tags.slice(0, 3).join("/")})`)
+    .map((a) => a.id)
     .join("; ");
   const seasonalLines =
     d.seasonal_warnings.length > 0
       ? d.seasonal_warnings
-          .map((w) => w.message)
+          .map((w) => w.message.split(";")[0]!.split(".")[0])
           .slice(0, 2)
           .join(" | ")
       : "no major seasonal blockers";
